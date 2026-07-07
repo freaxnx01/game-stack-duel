@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+html, body { margin: 0; padding: 0; background: #F6F6F3; color: #1D1D1B; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+a { color: #4E7FBE; text-decoration: none; }
+a:hover { color: #38639C; text-decoration: underline; }
+@keyframes ovIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+</style>
+</helmet>
+
+<div data-screen-label="Stack Duel" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 26px 20px 34px; box-sizing: border-box">
+  <div style="display: flex; flex-direction: column; gap: 18px">
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between">
+      <div>
+        <div style="font-size: 15px; font-weight: 800; letter-spacing: 0.24em">STACK DUEL</div>
+        <div style="font-size: 11px; color: #8B8B85; letter-spacing: 0.16em; margin-top: 4px">TWO PLAYER · BEST OF 3</div>
+      </div>
+      <button onClick="{{ toggleMute }}" style="font: inherit; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: #6E6E68; background: #FFFFFF; border: 1px solid #DDDDD6; padding: 7px 13px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2; color: #1D1D1B">{{ muteLabel }}</button>
+    </div>
+
+    <div style="position: relative">
+      <div style="display: flex; gap: 24px; align-items: stretch">
+
+        <div style="width: 132px; display: flex; flex-direction: column; align-items: flex-end; gap: 22px; padding-top: 20px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em">{{ p1NameU }}</div>
+            <div style="width: 9px; height: 9px; background: #4E7FBE"></div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">SCORE</div>
+            <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 26px; font-weight: 600">{{ p1Score }}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">HOLD</div>
+            <canvas ref="{{ refHold1 }}" width="72" height="40" style="width: 72px; height: 40px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 3px">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">NEXT</div>
+            <canvas ref="{{ refNext1 }}" width="72" height="124" style="width: 72px; height: 124px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px">
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LINES</div>
+              <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p1Lines }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LEVEL</div>
+              <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p1Level }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="height: 16px; display: flex; justify-content: center; align-items: center">
+            <sc-if value="{{ p1IncomingShow }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p1Incoming }} INCOMING</div>
+            </sc-if>
+          </div>
+          <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">A D move · W rotate · S soft · SPACE hard · ⇧ hold</div>
+        </div>
+
+        <div style="width: 118px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 0 24px">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 2px">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.2em; color: #9A9A93">ROUND</div>
+            <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 30px; font-weight: 600">{{ roundNum }}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px; align-items: flex-start">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="font-size: 10px; font-weight: 700; color: #8B8B85; letter-spacing: 0.08em; width: 16px">P1</div>
+              <div style="display: flex; gap: 6px">
+                <sc-for list="{{ p1Dots }}" as="d" hint-placeholder-count="2">
+                  <div style="width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box; background: {{ d.bg }}; border: 2px solid {{ d.bd }}"></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="font-size: 10px; font-weight: 700; color: #8B8B85; letter-spacing: 0.08em; width: 16px">P2</div>
+              <div style="display: flex; gap: 6px">
+                <sc-for list="{{ p2Dots }}" as="d" hint-placeholder-count="2">
+                  <div style="width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box; background: {{ d.bg }}; border: 2px solid {{ d.bd }}"></div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="font-size: 10px; color: #A5A59E; letter-spacing: 0.14em; text-align: center; line-height: 1.9">P — PAUSE<br>M — SOUND</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 7px">
+          <div style="height: 16px; display: flex; justify-content: center; align-items: center">
+            <sc-if value="{{ p2IncomingShow }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p2Incoming }} INCOMING</div>
+            </sc-if>
+          </div>
+          <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">← → move · ↑ rotate · ↓ soft · ENTER hard · ⇧ hold</div>
+        </div>
+
+        <div style="width: 132px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; padding-top: 20px">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div style="width: 9px; height: 9px; background: #C97A3D"></div>
+            <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em">{{ p2NameU }}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">SCORE</div>
+            <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 26px; font-weight: 600">{{ p2Score }}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">HOLD</div>
+            <canvas ref="{{ refHold2 }}" width="72" height="40" style="width: 72px; height: 40px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+            <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">NEXT</div>
+            <canvas ref="{{ refNext2 }}" width="72" height="124" style="width: 72px; height: 124px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LINES</div>
+              <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p2Lines }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LEVEL</div>
+              <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p2Level }}</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <sc-if value="{{ overlayVisible }}" hint-placeholder-val="{{ true }}">
+        <div data-screen-label="Overlay" style="position: absolute; inset: -6px; background: rgba(246, 246, 243, 0.92); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 5; animation: ovIn 0.18s ease-out">
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; max-width: 600px; animation: popIn 0.22s ease-out">
+            <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.26em; color: #8B8B85">{{ overlayKicker }}</div>
+            <sc-if value="{{ showCountdown }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 92px; font-weight: 600; line-height: 1">{{ countdownText }}</div>
+            </sc-if>
+            <sc-if value="{{ showTitle }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size: 34px; font-weight: 800; letter-spacing: 0.05em; line-height: 1.2">{{ overlayTitle }}</div>
+            </sc-if>
+            <sc-if value="{{ overlaySubShow }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size: 14px; color: #6E6E68; line-height: 1.6; max-width: 440px">{{ overlaySub }}</div>
+            </sc-if>
+            <sc-if value="{{ showControls }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; gap: 44px; margin-top: 10px">
+                <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start">
+                  <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 3px">
+                    <div style="width: 8px; height: 8px; background: #4E7FBE"></div>
+                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">{{ p1NameU }}</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">A D</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">MOVE</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">W</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">ROTATE</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">S</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">SOFT DROP</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">SPACE</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HARD DROP</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">SHIFT</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HOLD</span></div>
+                </div>
+                <div style="width: 1px; background: #E0E0DA"></div>
+                <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start">
+                  <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 3px">
+                    <div style="width: 8px; height: 8px; background: #C97A3D"></div>
+                    <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">{{ p2NameU }}</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">← →</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">MOVE</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">↑</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">ROTATE</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">↓</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">SOFT DROP</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">ENTER</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HARD DROP</span></div>
+                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">R SHIFT</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HOLD</span></div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showButton }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 9px; margin-top: 6px">
+                <button onClick="{{ advance }}" style="font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.18em; background: #1D1D1B; color: #F6F6F3; border: none; padding: 13px 28px; cursor: pointer; border-radius: 2px" style-hover="background: #3A3A36">{{ buttonLabel }}</button>
+                <div style="font-size: 10px; color: #A5A59E; letter-spacing: 0.14em">OR PRESS ENTER</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;p1Name&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Player 1&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Players&quot; },
+  &quot;p2Name&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Player 2&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Players&quot; },
+  &quot;startLevel&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 1, &quot;min&quot;: 1, &quot;max&quot;: 10, &quot;step&quot;: 1, &quot;unit&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Gameplay&quot; },
+  &quot;ghostPiece&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Gameplay&quot; }
+}">
+class Component extends DCLogic {
+  state = {
+    phase: 'menu', round: 1, wins: [0, 0], lastWinner: 0, countdown: '3', muted: false,
+    p1: { score: 0, lines: 0, level: 1, incoming: 0 },
+    p2: { score: 0, lines: 0, level: 1, incoming: 0 }
+  };
+
+  COLS = 10; ROWS = 22; HID = 2; CELL = 30;
+  DAS = 150; ARR = 45; SOFT = 40; LOCK = 480; CLEARMS = 150; MAXRESET = 15;
+  GARB = [0, 0, 1, 2, 4];
+  COLORS = { I: '#5FA8CF', J: '#7E8CD8', L: '#DFA35B', O: '#D9BE58', S: '#7FBB8C', T: '#B48CD3', Z: '#DB8578', G: '#C6C6BF' };
+  ACCENTS = ['#4E7FBE', '#C97A3D'];
+
+  bindCanvas(key, w, h) {
+    return (el) => {
+      if (!el) return;
+      const dpr = window.devicePixelRatio || 1;
+      el.width = w * dpr; el.height = h * dpr; el.__dpr = dpr;
+      this[key] = el;
+    };
+  }
+  refBoard1 = this.bindCanvas('cvB1', 300, 600);
+  refBoard2 = this.bindCanvas('cvB2', 300, 600);
+  refHold1 = this.bindCanvas('cvH1', 72, 40);
+  refHold2 = this.bindCanvas('cvH2', 72, 40);
+  refNext1 = this.bindCanvas('cvN1', 72, 124);
+  refNext2 = this.bindCanvas('cvN2', 72, 124);
+
+  componentDidMount() {
+    this.buildRots();
+    this.players = [this.makePlayer(0), this.makePlayer(1)];
+    this.players.forEach(p => this.fillQueue(p));
+    this.maps = [
+      { KeyA: 'left', KeyD: 'right', KeyS: 'soft', KeyW: 'rot', Space: 'hard', ShiftLeft: 'hold' },
+      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Enter: 'hard', ShiftRight: 'hold' }
+    ];
+    this.roundActive = false;
+    this.overlayAt = 0; this.hudDirty = false; this.lastHud = 0; this.timers = [];
+    this.onKeyDown = (e) => this.keyDown(e);
+    this.onKeyUp = (e) => this.keyUp(e);
+    this.onBlur = () => { if (this.state.phase === 'playing') this.setState({ phase: 'paused' }); };
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
+    window.addEventListener('blur', this.onBlur);
+    this.syncHud();
+    this.last = performance.now();
+    this.raf = requestAnimationFrame(this.loop);
+  }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf);
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('keyup', this.onKeyUp);
+    window.removeEventListener('blur', this.onBlur);
+    this.clearTimers();
+    if (this.ac) this.ac.close();
+  }
+
+  clearTimers() { (this.timers || []).forEach(clearTimeout); this.timers = []; }
+
+  buildRots() {
+    const base = {
+      I: { s: 4, c: [[0, 1], [1, 1], [2, 1], [3, 1]] },
+      J: { s: 3, c: [[0, 0], [0, 1], [1, 1], [2, 1]] },
+      L: { s: 3, c: [[2, 0], [0, 1], [1, 1], [2, 1]] },
+      O: { s: 2, c: [[0, 0], [1, 0], [0, 1], [1, 1]] },
+      S: { s: 3, c: [[1, 0], [2, 0], [0, 1], [1, 1]] },
+      T: { s: 3, c: [[1, 0], [0, 1], [1, 1], [2, 1]] },
+      Z: { s: 3, c: [[0, 0], [1, 0], [1, 1], [2, 1]] }
+    };
+    this.ROTS = {}; this.SIZES = {};
+    for (const t in base) {
+      const s = base[t].s;
+      this.SIZES[t] = s;
+      const rots = [base[t].c];
+      for (let r = 1; r < 4; r++) rots.push(rots[r - 1].map(c => [s - 1 - c[1], c[0]]));
+      this.ROTS[t] = rots;
+    }
+  }
+
+  startLevel() { return Math.max(1, Math.min(10, Number(this.props.startLevel ?? 1) || 1)); }
+
+  makePlayer(idx) {
+    return {
+      idx, grid: Array.from({ length: this.ROWS }, () => Array(this.COLS).fill(null)),
+      bag: [], queue: [], cur: null, hold: null, holdUsed: false,
+      score: 0, lines: 0, level: this.startLevel(), gravAcc: 0, soft: false,
+      das: null, lockT: 0, lockResets: 0, clearing: null, pending: 0
+    };
+  }
+
+  fillQueue(p) {
+    while (p.queue.length < 4) {
+      if (!p.bag.length) {
+        p.bag = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+        for (let i = p.bag.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = p.bag[i]; p.bag[i] = p.bag[j]; p.bag[j] = tmp;
+        }
+      }
+      p.queue.push(p.bag.pop());
+    }
+  }
+
+  collide(p, type, rot, x, y) {
+    const cells = this.ROTS[type][rot];
+    for (let i = 0; i < 4; i++) {
+      const gx = x + cells[i][0], gy = y + cells[i][1];
+      if (gx < 0 || gx >= this.COLS || gy >= this.ROWS) return true;
+      if (gy >= 0 && p.grid[gy][gx]) return true;
+    }
+    return false;
+  }
+
+  spawnX(type) { return this.SIZES[type] === 2 ? 4 : 3; }
+
+  spawn(p) {
+    this.fillQueue(p);
+    const type = p.queue.shift();
+    this.fillQueue(p);
+    let y = 1;
+    if (this.collide(p, type, 0, this.spawnX(type), y)) y = 0;
+    p.cur = { type, rot: 0, x: this.spawnX(type), y };
+    p.holdUsed = false; p.lockT = 0; p.lockResets = 0; p.gravAcc = 0;
+    if (this.collide(p, type, 0, p.cur.x, y)) this.topOut(p);
+  }
+
+  grounded(p) { return p.cur && this.collide(p, p.cur.type, p.cur.rot, p.cur.x, p.cur.y + 1); }
+  lockReset(p) { if (p.lockResets < this.MAXRESET) { p.lockT = 0; p.lockResets++; } }
+
+  tryMove(p, dx) {
+    if (!p.cur) return false;
+    const c = p.cur;
+    if (this.collide(p, c.type, c.rot, c.x + dx, c.y)) return false;
+    c.x += dx; this.snd('move');
+    if (this.grounded(p)) this.lockReset(p);
+    return true;
+  }
+
+  tryRotate(p) {
+    if (!p.cur) return;
+    const c = p.cur, nr = (c.rot + 1) % 4;
+    const kicks = [[0, 0], [-1, 0], [1, 0], [0, -1], [-1, -1], [1, -1], [-2, 0], [2, 0]];
+    for (let i = 0; i < kicks.length; i++) {
+      if (!this.collide(p, c.type, nr, c.x + kicks[i][0], c.y + kicks[i][1])) {
+        c.rot = nr; c.x += kicks[i][0]; c.y += kicks[i][1];
+        this.snd('rotate');
+        if (this.grounded(p)) this.lockReset(p);
+        return;
+      }
+    }
+  }
+
+  ghostYOf(p) {
+    const c = p.cur; let y = c.y;
+    while (!this.collide(p, c.type, c.rot, c.x, y + 1)) y++;
+    return y;
+  }
+
+  hardDrop(p) {
+    if (!p.cur) return;
+    const gy = this.ghostYOf(p);
+    p.score += (gy - p.cur.y) * 2; this.hudDirty = true;
+    p.cur.y = gy;
+    this.snd('hard');
+    this.lockPiece(p);
+  }
+
+  holdPiece(p) {
+    if (!p.cur || p.holdUsed) return;
+    const t = p.cur.type;
+    this.snd('hold');
+    if (p.hold) {
+      const h = p.hold; p.hold = t;
+      let y = 1;
+      if (this.collide(p, h, 0, this.spawnX(h), y)) y = 0;
+      p.cur = { type: h, rot: 0, x: this.spawnX(h), y };
+      p.lockT = 0; p.lockResets = 0; p.gravAcc = 0;
+      if (this.collide(p, h, 0, p.cur.x, y)) return this.topOut(p);
+    } else {
+      p.hold = t;
+      this.spawn(p);
+    }
+    p.holdUsed = true;
+  }
+
+  lockPiece(p) {
+    const c = p.cur; if (!c) return;
+    const cells = this.ROTS[c.type][c.rot];
+    let allHidden = true;
+    for (let i = 0; i < 4; i++) {
+      const gy = c.y + cells[i][1];
+      if (gy >= 0) p.grid[gy][c.x + cells[i][0]] = c.type;
+      if (gy >= this.HID) allHidden = false;
+    }
+    p.cur = null; p.das = null; p.soft = false;
+    if (allHidden) return this.topOut(p);
+    const rows = [];
+    for (let r = 0; r < this.ROWS; r++) { if (p.grid[r].every(v => v)) rows.push(r); }
+    if (rows.length) {
+      p.clearing = { rows, t: 0 };
+      this.snd(rows.length >= 4 ? 'quad' : 'clear');
+    } else {
+      this.snd('lock');
+      this.afterLock(p);
+    }
+  }
+
+  finishClear(p) {
+    const rows = p.clearing.rows; p.clearing = null;
+    p.grid = p.grid.filter((_, r) => rows.indexOf(r) === -1);
+    while (p.grid.length < this.ROWS) p.grid.unshift(Array(this.COLS).fill(null));
+    const n = rows.length;
+    p.score += [0, 100, 300, 500, 800][n] * p.level;
+    p.lines += n;
+    const nl = this.startLevel() + Math.floor(p.lines / 10);
+    if (nl > p.level) { p.level = nl; this.snd('level'); }
+    let atk = this.GARB[n];
+    const cancel = Math.min(p.pending, atk);
+    p.pending -= cancel; atk -= cancel;
+    if (atk > 0) {
+      this.players[1 - p.idx].pending += atk;
+      this.snd('warn');
+    }
+    this.hudDirty = true;
+    this.afterLock(p);
+  }
+
+  afterLock(p) {
+    if (!this.roundActive) return;
+    if (p.pending > 0) {
+      const n = Math.min(p.pending, 8);
+      p.pending -= n;
+      const hole = Math.floor(Math.random() * this.COLS);
+      p.grid.splice(0, n);
+      for (let i = 0; i < n; i++) {
+        const row = Array(this.COLS).fill('G'); row[hole] = null;
+        p.grid.push(row);
+      }
+      this.snd('garbage');
+    }
+    this.hudDirty = true;
+    this.spawn(p);
+  }
+
+  topOut(loser) {
+    if (!this.roundActive) return;
+    this.roundActive = false;
+    const w = 1 - loser.idx;
+    const wins = [this.state.wins[0], this.state.wins[1]];
+    wins[w]++;
+    this.snd('lose');
+    this.timers.push(setTimeout(() => this.snd(wins[w] >= 2 ? 'matchwin' : 'win'), 380));
+    this.overlayAt = performance.now();
+    this.syncHud();
+    this.setState({ wins, lastWinner: w, phase: wins[w] >= 2 ? 'matchover' : 'roundover' });
+  }
+
+  startRound() {
+    this.clearTimers();
+    this.players = [this.makePlayer(0), this.makePlayer(1)];
+    this.players.forEach(p => this.fillQueue(p));
+    this.roundActive = false;
+    this.syncHud();
+    this.setState({ phase: 'countdown', countdown: '3' });
+    this.snd('tick');
+    const step = (v, d) => this.timers.push(setTimeout(() => {
+      this.setState({ countdown: v });
+      this.snd(v === 'GO' ? 'go' : 'tick');
+    }, d));
+    step('2', 700); step('1', 1400); step('GO', 2100);
+    this.timers.push(setTimeout(() => {
+      this.roundActive = true;
+      this.players.forEach(p => this.spawn(p));
+      this.last = performance.now();
+      this.setState({ phase: 'playing' });
+    }, 2550));
+  }
+
+  advance = () => {
+    if (performance.now() - this.overlayAt < 450) return;
+    this.ensureAC();
+    const ph = this.state.phase;
+    if (ph === 'menu') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
+    else if (ph === 'roundover') { this.setState({ round: this.state.round + 1 }); this.startRound(); }
+    else if (ph === 'matchover') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
+  };
+
+  toggleMute = () => { this.ensureAC(); this.setState(s => ({ muted: !s.muted })); };
+
+  keyDown(e) {
+    const code = e.code;
+    if (code === 'Space' || code === 'Enter' || code.indexOf('Arrow') === 0) e.preventDefault();
+    if (e.repeat) return;
+    this.ensureAC();
+    const ph = this.state.phase;
+    if (code === 'KeyM') { this.toggleMute(); return; }
+    if ((code === 'KeyP' || code === 'Escape') && (ph === 'playing' || ph === 'paused')) {
+      if (ph === 'paused') this.last = performance.now();
+      this.setState({ phase: ph === 'playing' ? 'paused' : 'playing' });
+      return;
+    }
+    if (ph === 'menu' || ph === 'roundover' || ph === 'matchover') {
+      if (code === 'Enter' || code === 'Space') this.advance();
+      return;
+    }
+    if (ph !== 'playing' || !this.roundActive) return;
+    for (let i = 0; i < 2; i++) {
+      const act = this.maps[i][code];
+      if (!act) continue;
+      this.doAction(this.players[i], act);
+    }
+  }
+
+  doAction(p, act) {
+    if (act === 'left' || act === 'right') {
+      const dir = act === 'left' ? -1 : 1;
+      this.tryMove(p, dir);
+      const now = performance.now();
+      p.das = { dir, t: now, rep: now };
+    } else if (act === 'soft') { p.soft = true; }
+    else if (act === 'rot') { this.tryRotate(p); }
+    else if (act === 'hard') { this.hardDrop(p); }
+    else if (act === 'hold') { this.holdPiece(p); }
+  }
+
+  keyUp(e) {
+    if (!this.players) return;
+    for (let i = 0; i < 2; i++) {
+      const act = this.maps[i][e.code];
+      if (!act) continue;
+      const p = this.players[i];
+      if (act === 'left' || act === 'right') {
+        const dir = act === 'left' ? -1 : 1;
+        if (p.das && p.das.dir === dir) p.das = null;
+      } else if (act === 'soft') { p.soft = false; }
+    }
+  }
+
+  gravMs(level) { return Math.max(60, 800 * Math.pow(0.82, level - 1)); }
+
+  update(p, dt) {
+    if (!this.roundActive) return;
+    if (p.clearing) {
+      p.clearing.t += dt;
+      if (p.clearing.t >= this.CLEARMS) this.finishClear(p);
+      return;
+    }
+    if (!p.cur) return;
+    const now = performance.now();
+    if (p.das && now - p.das.t > this.DAS) {
+      let guard = 0;
+      while (now - p.das.rep >= this.ARR && guard++ < 4) {
+        p.das.rep += this.ARR;
+        this.tryMove(p, p.das.dir);
+      }
+    }
+    if (this.grounded(p)) {
+      p.gravAcc = 0;
+      p.lockT += dt;
+      if (p.lockT >= this.LOCK) this.lockPiece(p);
+    } else {
+      p.lockT = 0;
+      const iv = p.soft ? Math.min(this.SOFT, this.gravMs(p.level)) : this.gravMs(p.level);
+      p.gravAcc += dt;
+      let guard = 0;
+      while (p.gravAcc >= iv && guard++ < 24) {
+        p.gravAcc -= iv;
+        if (!this.collide(p, p.cur.type, p.cur.rot, p.cur.x, p.cur.y + 1)) {
+          p.cur.y++;
+          if (p.soft) { p.score += 1; this.hudDirty = true; }
+        } else break;
+      }
+    }
+  }
+
+  loop = (t) => {
+    const dt = Math.min(50, t - this.last);
+    this.last = t;
+    if (this.state.phase === 'playing' && this.roundActive) {
+      this.update(this.players[0], dt);
+      this.update(this.players[1], dt);
+    }
+    this.drawAll();
+    if (this.hudDirty && t - this.lastHud > 150) { this.lastHud = t; this.syncHud(); }
+    this.raf = requestAnimationFrame(this.loop);
+  };
+
+  syncHud() {
+    this.hudDirty = false;
+    if (!this.players) return;
+    const snap = p => ({ score: p.score, lines: p.lines, level: p.level, incoming: p.pending });
+    this.setState({ p1: snap(this.players[0]), p2: snap(this.players[1]) });
+  }
+
+  drawAll() {
+    if (!this.players) return;
+    for (let i = 0; i < 2; i++) {
+      this.drawBoard(this.players[i]);
+      this.drawPreviews(this.players[i]);
+    }
+  }
+
+  drawBoard(p) {
+    const cv = p.idx === 0 ? this.cvB1 : this.cvB2;
+    if (!cv) return;
+    const g = cv.getContext('2d');
+    const dpr = cv.__dpr || 1;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const W = 300, H = 600, C = this.CELL;
+    g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = '#F2F2ED'; g.lineWidth = 1;
+    g.beginPath();
+    for (let x = 1; x < this.COLS; x++) { g.moveTo(x * C + 0.5, 0); g.lineTo(x * C + 0.5, H); }
+    for (let y = 1; y < 20; y++) { g.moveTo(0, y * C + 0.5); g.lineTo(W, y * C + 0.5); }
+    g.stroke();
+    const cell = (gx, gy, color, alpha) => {
+      if (gy < this.HID) return;
+      g.globalAlpha = alpha === undefined ? 1 : alpha;
+      g.fillStyle = color;
+      g.fillRect(gx * C + 1.5, (gy - this.HID) * C + 1.5, C - 3, C - 3);
+      g.globalAlpha = 1;
+    };
+    for (let r = this.HID; r < this.ROWS; r++) {
+      for (let c = 0; c < this.COLS; c++) {
+        const v = p.grid[r][c];
+        if (v) cell(c, r, this.COLORS[v]);
+      }
+    }
+    if (p.clearing) {
+      g.globalAlpha = p.clearing.t < 70 ? 0.55 : 0.92;
+      g.fillStyle = '#FFFFFF';
+      for (let i = 0; i < p.clearing.rows.length; i++) {
+        g.fillRect(0, (p.clearing.rows[i] - this.HID) * C, W, C);
+      }
+      g.globalAlpha = 1;
+    }
+    if (p.cur) {
+      const c0 = p.cur, col = this.COLORS[c0.type], cells = this.ROTS[c0.type][c0.rot];
+      if ((this.props.ghostPiece ?? true) && this.state.phase === 'playing') {
+        const gy = this.ghostYOf(p);
+        for (let i = 0; i < 4; i++) cell(c0.x + cells[i][0], gy + cells[i][1], col, 0.16);
+      }
+      for (let i = 0; i < 4; i++) cell(c0.x + cells[i][0], c0.y + cells[i][1], col);
+    }
+  }
+
+  drawMini(g, type, cx, cy, c) {
+    const cells = this.ROTS[type][0];
+    let minx = 9, maxx = -9, miny = 9, maxy = -9;
+    for (let i = 0; i < 4; i++) {
+      minx = Math.min(minx, cells[i][0]); maxx = Math.max(maxx, cells[i][0]);
+      miny = Math.min(miny, cells[i][1]); maxy = Math.max(maxy, cells[i][1]);
+    }
+    const w = (maxx - minx + 1) * c, h = (maxy - miny + 1) * c;
+    g.fillStyle = this.COLORS[type];
+    for (let i = 0; i < 4; i++) {
+      g.fillRect(cx - w / 2 + (cells[i][0] - minx) * c + 0.5, cy - h / 2 + (cells[i][1] - miny) * c + 0.5, c - 1, c - 1);
+    }
+  }
+
+  drawPreviews(p) {
+    const hv = p.idx === 0 ? this.cvH1 : this.cvH2;
+    const nv = p.idx === 0 ? this.cvN1 : this.cvN2;
+    if (hv) {
+      const g = hv.getContext('2d'), dpr = hv.__dpr || 1;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, 72, 40);
+      if (p.hold) {
+        g.globalAlpha = p.holdUsed ? 0.3 : 1;
+        this.drawMini(g, p.hold, 36, 20, 13);
+        g.globalAlpha = 1;
+      }
+    }
+    if (nv) {
+      const g = nv.getContext('2d'), dpr = nv.__dpr || 1;
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, 72, 124);
+      for (let i = 0; i < 3; i++) {
+        const t = p.queue[i];
+        if (t) this.drawMini(g, t, 36, 22 + i * 40, 13);
+      }
+    }
+  }
+
+  ensureAC() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (this.ac) { if (this.ac.state === 'suspended') this.ac.resume(); return; }
+    this.ac = new AC();
+    this.master = this.ac.createGain();
+    this.master.gain.value = 0.16;
+    this.master.connect(this.ac.destination);
+  }
+
+  tone(f, d, type, v, delay) {
+    if (!this.ac || this.state.muted) return;
+    const t0 = this.ac.currentTime + (delay || 0);
+    const o = this.ac.createOscillator(), gn = this.ac.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(f, t0);
+    gn.gain.setValueAtTime(0.0001, t0);
+    gn.gain.exponentialRampToValueAtTime(v || 0.5, t0 + 0.008);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(gn); gn.connect(this.master);
+    o.start(t0); o.stop(t0 + d + 0.02);
+  }
+
+  snd(name) {
+    if (!this.ac || this.state.muted) return;
+    const T = (f, d, ty, v, dl) => this.tone(f, d, ty, v, dl);
+    if (name === 'move') T(220, 0.03, 'square', 0.18);
+    else if (name === 'rotate') T(340, 0.05, 'square', 0.25);
+    else if (name === 'lock') T(150, 0.06, 'triangle', 0.5);
+    else if (name === 'hard') { T(120, 0.07, 'triangle', 0.6); T(75, 0.09, 'triangle', 0.5, 0.02); }
+    else if (name === 'hold') T(520, 0.05, 'sine', 0.35);
+    else if (name === 'clear') { T(523, 0.07, 'square', 0.4); T(659, 0.09, 'square', 0.4, 0.07); }
+    else if (name === 'quad') [523, 659, 784, 1046].forEach((f, i) => T(f, 0.09, 'square', 0.45, i * 0.06));
+    else if (name === 'garbage') { T(90, 0.16, 'sawtooth', 0.5); T(60, 0.2, 'sawtooth', 0.4, 0.05); }
+    else if (name === 'warn') { T(200, 0.06, 'square', 0.3); T(160, 0.08, 'square', 0.3, 0.07); }
+    else if (name === 'level') { T(660, 0.07, 'square', 0.35); T(880, 0.1, 'square', 0.35, 0.08); }
+    else if (name === 'tick') T(440, 0.06, 'square', 0.35);
+    else if (name === 'go') T(880, 0.16, 'square', 0.45);
+    else if (name === 'win') [523, 659, 784].forEach((f, i) => T(f, 0.12, 'triangle', 0.5, i * 0.11));
+    else if (name === 'matchwin') [523, 659, 784, 1046, 1318].forEach((f, i) => T(f, 0.14, 'triangle', 0.5, i * 0.12));
+    else if (name === 'lose') [220, 160, 110].forEach((f, i) => T(f, 0.14, 'triangle', 0.45, i * 0.12));
+  }
+
+  renderVals() {
+    const s = this.state;
+    const n1 = String(this.props.p1Name ?? 'Player 1').toUpperCase();
+    const n2 = String(this.props.p2Name ?? 'Player 2').toUpperCase();
+    const names = [n1, n2];
+    const ph = s.phase;
+    const A = this.ACCENTS;
+    const dots = (i) => [0, 1].map(k => ({
+      bg: s.wins[i] > k ? A[i] : 'rgba(0,0,0,0)',
+      bd: s.wins[i] > k ? A[i] : '#CFCFC8'
+    }));
+    let kicker = '', title = '', sub = '', button = '';
+    if (ph === 'menu') {
+      kicker = 'TWO PLAYER · FIRST TO 2 ROUNDS';
+      title = 'STACK DUEL';
+      sub = 'Clear lines to dump garbage rows on your opponent. Top out and you lose the round.';
+      button = 'START MATCH';
+    } else if (ph === 'countdown') {
+      kicker = 'ROUND ' + s.round;
+    } else if (ph === 'roundover') {
+      kicker = 'ROUND ' + s.round;
+      title = names[s.lastWinner] + ' TAKES THE ROUND';
+      sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
+      button = 'NEXT ROUND';
+    } else if (ph === 'matchover') {
+      kicker = 'MATCH OVER';
+      title = names[s.lastWinner] + ' WINS THE MATCH';
+      sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
+      button = 'REMATCH';
+    } else if (ph === 'paused') {
+      kicker = 'ROUND ' + s.round;
+      title = 'PAUSED';
+      sub = 'Press P to resume.';
+    }
+    return {
+      p1NameU: n1, p2NameU: n2,
+      p1Score: s.p1.score, p1Lines: s.p1.lines, p1Level: s.p1.level,
+      p2Score: s.p2.score, p2Lines: s.p2.lines, p2Level: s.p2.level,
+      p1IncomingShow: s.p1.incoming > 0, p1Incoming: '+' + s.p1.incoming,
+      p2IncomingShow: s.p2.incoming > 0, p2Incoming: '+' + s.p2.incoming,
+      roundNum: s.round,
+      p1Dots: dots(0), p2Dots: dots(1),
+      overlayVisible: ph !== 'playing',
+      showCountdown: ph === 'countdown',
+      showTitle: ph !== 'countdown',
+      overlayKicker: kicker, overlayTitle: title,
+      overlaySubShow: !!sub, overlaySub: sub,
+      showControls: ph === 'menu',
+      showButton: ph === 'menu' || ph === 'roundover' || ph === 'matchover',
+      buttonLabel: button,
+      countdownText: s.countdown,
+      muteLabel: s.muted ? 'SOUND: OFF' : 'SOUND: ON',
+      toggleMute: this.toggleMute,
+      advance: this.advance,
+      refBoard1: this.refBoard1, refBoard2: this.refBoard2,
+      refHold1: this.refHold1, refHold2: this.refHold2,
+      refNext1: this.refNext1, refNext2: this.refNext2
+    };
+  }
+}
+</script>
+</body>
+</html>
