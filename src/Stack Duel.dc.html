@@ -69,7 +69,7 @@ a:hover { color: #38639C; text-decoration: underline; }
             </sc-if>
           </div>
           <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
-          <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">A D move · W rotate · S soft · SPACE hard · ⇧ hold</div>
+          <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p1Hint }}</div>
         </div>
 
         <div style="width: 118px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 0 24px">
@@ -105,7 +105,7 @@ a:hover { color: #38639C; text-decoration: underline; }
             </sc-if>
           </div>
           <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
-          <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">← → move · ↑ rotate · ↓ soft · ENTER hard · ⇧ hold</div>
+          <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p2Hint }}</div>
         </div>
 
         <div style="width: 132px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; padding-top: 20px">
@@ -159,11 +159,9 @@ a:hover { color: #38639C; text-decoration: underline; }
                     <div style="width: 8px; height: 8px; background: #4E7FBE"></div>
                     <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">{{ p1NameU }}</div>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">A D</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">MOVE</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">W</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">ROTATE</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">S</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">SOFT DROP</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">SPACE</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HARD DROP</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">SHIFT</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HOLD</span></div>
+                  <sc-for list="{{ p1Keys }}" as="d" hint-placeholder-count="6">
+                    <div style="display: flex; align-items: center; gap: 9px; width: 150px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">{{ d.k }}</span></div>
+                  </sc-for>
                 </div>
                 <div style="width: 1px; background: #E0E0DA"></div>
                 <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start">
@@ -171,13 +169,79 @@ a:hover { color: #38639C; text-decoration: underline; }
                     <div style="width: 8px; height: 8px; background: #C97A3D"></div>
                     <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">{{ p2NameU }}</div>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">← →</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">MOVE</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">↑</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">ROTATE</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">↓</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">SOFT DROP</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">ENTER</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HARD DROP</span></div>
-                  <div style="display: flex; align-items: center; gap: 9px"><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">R SHIFT</span><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">HOLD</span></div>
+                  <sc-for list="{{ p2Keys }}" as="d" hint-placeholder-count="6">
+                    <div style="display: flex; align-items: center; gap: 9px; width: 150px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><span style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: #FFFFFF; border: 1px solid #D8D8D1; border-bottom: 2px solid #D8D8D1; border-radius: 3px; padding: 2px 7px; color: #3A3A36">{{ d.k }}</span></div>
+                  </sc-for>
                 </div>
               </div>
+            </sc-if>
+            <sc-if value="{{ showMenuButtons }}" hint-placeholder-val="{{ true }}">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 9px; margin-top: 8px">
+                <sc-for list="{{ menuButtons }}" as="b" hint-placeholder-count="4">
+                  <button onClick="{{ b.onClick }}" style="{{ b.style }}">{{ b.lab }}</button>
+                </sc-for>
+                <div style="font-size: 10px; color: #A5A59E; letter-spacing: 0.14em; margin-top: 2px">ENTER — START LOCAL MATCH</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showControlsEditor }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 16px">
+                <div style="font-size: 30px; font-weight: 800; letter-spacing: 0.05em">CONTROLS</div>
+                <div style="font-size: 13px; color: #6E6E68; line-height: 1.5">Click a slot, then press the key you want. ESC cancels. M / P are reserved.</div>
+                <div style="display: flex; gap: 40px; margin-top: 4px">
+                  <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start">
+                    <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 3px">
+                      <div style="width: 8px; height: 8px; background: #4E7FBE"></div>
+                      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">{{ p1NameU }}</div>
+                    </div>
+                    <sc-for list="{{ edit1 }}" as="d" hint-placeholder-count="6">
+                      <div style="display: flex; align-items: center; gap: 12px; width: 200px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><button onClick="{{ d.onClick }}" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: {{ d.bg }}; border: 1px solid {{ d.bd }}; border-radius: 3px; padding: 4px 10px; color: {{ d.fg }}; cursor: pointer; min-width: 78px">{{ d.disp }}</button></div>
+                    </sc-for>
+                  </div>
+                  <div style="width: 1px; background: #E0E0DA"></div>
+                  <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start">
+                    <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 3px">
+                      <div style="width: 8px; height: 8px; background: #C97A3D"></div>
+                      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">{{ p2NameU }}</div>
+                    </div>
+                    <sc-for list="{{ edit2 }}" as="d" hint-placeholder-count="6">
+                      <div style="display: flex; align-items: center; gap: 12px; width: 200px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><button onClick="{{ d.onClick }}" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: {{ d.bg }}; border: 1px solid {{ d.bd }}; border-radius: 3px; padding: 4px 10px; color: {{ d.fg }}; cursor: pointer; min-width: 78px">{{ d.disp }}</button></div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 6px">
+                  <button onClick="{{ resetKeys }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1; padding: 11px 20px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2">RESET TO DEFAULTS</button>
+                  <button onClick="{{ backToMenu }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; background: #1D1D1B; color: #F6F6F3; border: none; padding: 11px 24px; cursor: pointer; border-radius: 2px" style-hover="background: #3A3A36">DONE</button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showHostScreen }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 11px; width: 460px; max-width: 100%; align-items: stretch">
+                <div style="font-size: 30px; font-weight: 800; letter-spacing: 0.05em; text-align: center">HOST ONLINE</div>
+                <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #8B8B85; text-align: left">1 — SEND THIS INVITE CODE TO YOUR FRIEND</div>
+                <textarea ref="{{ refHostCode }}" readOnly placeholder="Creating code…" style="width: 100%; box-sizing: border-box; height: 64px; resize: none; font-family: ui-monospace, Menlo, monospace; font-size: 10px; line-height: 1.35; padding: 8px; border: 1px solid #D8D8D1; border-radius: 3px; background: #FFFFFF; color: #1D1D1B; outline: none"></textarea>
+                <button onClick="{{ copyHost }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1; padding: 10px 18px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2">COPY INVITE CODE</button>
+                <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #8B8B85; text-align: left; margin-top: 4px">2 — PASTE THEIR REPLY CODE</div>
+                <textarea ref="{{ refHostAnswer }}" placeholder="Paste reply code…" style="width: 100%; box-sizing: border-box; height: 64px; resize: none; font-family: ui-monospace, Menlo, monospace; font-size: 10px; line-height: 1.35; padding: 8px; border: 1px solid #D8D8D1; border-radius: 3px; background: #FFFFFF; color: #1D1D1B; outline: none"></textarea>
+                <button onClick="{{ hostConnect }}" style="font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.16em; background: #4E7FBE; color: #FFFFFF; border: none; padding: 12px 24px; cursor: pointer; border-radius: 2px" style-hover="background: #38639C">CONNECT</button>
+                <div style="font-size: 12px; font-weight: 700; min-height: 16px; text-align: center; color: {{ netStatusColor }}">{{ netStatus }}</div>
+                <button onClick="{{ backToMenu }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: transparent; color: #8B8B85; border: none; padding: 4px; cursor: pointer">BACK TO MENU</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showJoinScreen }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; flex-direction: column; gap: 11px; width: 460px; max-width: 100%; align-items: stretch">
+                <div style="font-size: 30px; font-weight: 800; letter-spacing: 0.05em; text-align: center">JOIN ONLINE</div>
+                <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #8B8B85; text-align: left">1 — PASTE THE HOST'S INVITE CODE</div>
+                <textarea ref="{{ refJoinCode }}" placeholder="Paste invite code…" style="width: 100%; box-sizing: border-box; height: 64px; resize: none; font-family: ui-monospace, Menlo, monospace; font-size: 10px; line-height: 1.35; padding: 8px; border: 1px solid #D8D8D1; border-radius: 3px; background: #FFFFFF; color: #1D1D1B; outline: none"></textarea>
+                <button onClick="{{ joinReply }}" style="font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.16em; background: #C97A3D; color: #FFFFFF; border: none; padding: 12px 24px; cursor: pointer; border-radius: 2px" style-hover="background: #A9631F">CREATE REPLY CODE</button>
+                <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #8B8B85; text-align: left; margin-top: 4px">2 — SEND THIS REPLY CODE BACK TO THE HOST</div>
+                <textarea ref="{{ refJoinAnswer }}" readOnly placeholder="Reply code appears here…" style="width: 100%; box-sizing: border-box; height: 64px; resize: none; font-family: ui-monospace, Menlo, monospace; font-size: 10px; line-height: 1.35; padding: 8px; border: 1px solid #D8D8D1; border-radius: 3px; background: #FFFFFF; color: #1D1D1B; outline: none"></textarea>
+                <button onClick="{{ copyJoin }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1; padding: 10px 18px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2">COPY REPLY CODE</button>
+                <div style="font-size: 12px; font-weight: 700; min-height: 16px; text-align: center; color: {{ netStatusColor }}">{{ netStatus }}</div>
+                <button onClick="{{ backToMenu }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: transparent; color: #8B8B85; border: none; padding: 4px; cursor: pointer">BACK TO MENU</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ showWaitHost }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size: 13px; color: #6E6E68; letter-spacing: 0.1em; animation: blink 1.2s ease-in-out infinite">WAITING FOR HOST…</div>
             </sc-if>
             <sc-if value="{{ showButton }}" hint-placeholder-val="{{ true }}">
               <div style="display: flex; flex-direction: column; align-items: center; gap: 9px; margin-top: 6px">
@@ -199,12 +263,100 @@ a:hover { color: #38639C; text-decoration: underline; }
   &quot;startLevel&quot;: { &quot;editor&quot;: &quot;range&quot;, &quot;default&quot;: 1, &quot;min&quot;: 1, &quot;max&quot;: 10, &quot;step&quot;: 1, &quot;unit&quot;: &quot;&quot;, &quot;tsType&quot;: &quot;number&quot;, &quot;section&quot;: &quot;Gameplay&quot; },
   &quot;ghostPiece&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Gameplay&quot; }
 }">
+/* ---------- connect-code codec (ported from Tank Toys) ---------- */
+function _scB64(u8) {
+  let s = '';
+  for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function _scUnb64(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  const bin = atob(s), u8 = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  return u8;
+}
+async function _scEncodeCode(obj) {
+  const json = JSON.stringify(obj);
+  try {
+    const cs = new CompressionStream('deflate-raw');
+    const buf = await new Response(new Blob([json]).stream().pipeThrough(cs)).arrayBuffer();
+    return 'S1.' + _scB64(new Uint8Array(buf));
+  } catch (e) {
+    return 'S0.' + _scB64(new TextEncoder().encode(json));
+  }
+}
+async function _scDecodeCode(str) {
+  str = (str || '').trim().replace(/\s+/g, '');
+  const i = str.indexOf('.');
+  if (i < 0) throw new Error('bad code');
+  const tag = str.slice(0, i), bytes = _scUnb64(str.slice(i + 1));
+  let text;
+  if (tag === 'S1') {
+    const ds = new DecompressionStream('deflate-raw');
+    const buf = await new Response(new Blob([bytes]).stream().pipeThrough(ds)).arrayBuffer();
+    text = new TextDecoder().decode(buf);
+  } else {
+    text = new TextDecoder().decode(bytes);
+  }
+  return JSON.parse(text);
+}
+
+/* ---------- WebRTC manual-signaling link (ported from Tank Toys) ---------- */
+class NetLink {
+  constructor(onMsg, onState) {
+    this.onMsg = onMsg; this.onState = onState; this.ch = null;
+    this.pc = new RTCPeerConnection({
+      iceServers: [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]
+    });
+    this.pc.onconnectionstatechange = () => this.onState(this.pc.connectionState);
+  }
+  _wire(ch) {
+    this.ch = ch;
+    ch.onopen = () => this.onState('open');
+    ch.onclose = () => this.onState('closed');
+    ch.onmessage = (e) => { try { this.onMsg(JSON.parse(e.data)); } catch (_) {} };
+  }
+  _gather() {
+    return new Promise((res) => {
+      if (this.pc.iceGatheringState === 'complete') return res();
+      const t = setTimeout(res, 4000);
+      this.pc.addEventListener('icegatheringstatechange', () => {
+        if (this.pc.iceGatheringState === 'complete') { clearTimeout(t); res(); }
+      });
+    });
+  }
+  async host() {
+    this._wire(this.pc.createDataChannel('game'));
+    await this.pc.setLocalDescription(await this.pc.createOffer());
+    await this._gather();
+    return _scEncodeCode(this.pc.localDescription);
+  }
+  async acceptAnswer(code) {
+    await this.pc.setRemoteDescription(await _scDecodeCode(code));
+  }
+  async join(code) {
+    this.pc.ondatachannel = (e) => this._wire(e.channel);
+    await this.pc.setRemoteDescription(await _scDecodeCode(code));
+    await this.pc.setLocalDescription(await this.pc.createAnswer());
+    await this._gather();
+    return _scEncodeCode(this.pc.localDescription);
+  }
+  send(o) { if (this.ch && this.ch.readyState === 'open') this.ch.send(JSON.stringify(o)); }
+  close() { try { this.pc.close(); } catch (_) {} }
+}
+
 class Component extends DCLogic {
   state = {
     phase: 'menu', round: 1, wins: [0, 0], lastWinner: 0, countdown: '3', muted: false,
+    keyListen: null, netStatus: '', netStatusKind: '',
     p1: { score: 0, lines: 0, level: 1, incoming: 0 },
     p2: { score: 0, lines: 0, level: 1, incoming: 0 }
   };
+
+  ACTLIST = [['left', 'MOVE LEFT'], ['right', 'MOVE RIGHT'], ['rot', 'ROTATE'], ['soft', 'SOFT DROP'], ['hard', 'HARD DROP'], ['hold', 'HOLD']];
+  maps = this.loadMaps();
+  netMode = false; myIdx = 0; net = null;
 
   COLS = 10; ROWS = 22; HID = 2; CELL = 30;
   DAS = 150; ARR = 45; SOFT = 40; LOCK = 480; CLEARMS = 150; MAXRESET = 15;
@@ -231,15 +383,14 @@ class Component extends DCLogic {
     this.buildRots();
     this.players = [this.makePlayer(0), this.makePlayer(1)];
     this.players.forEach(p => this.fillQueue(p));
-    this.maps = [
-      { KeyA: 'left', KeyD: 'right', KeyS: 'soft', KeyW: 'rot', Space: 'hard', ShiftLeft: 'hold' },
-      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Enter: 'hard', ShiftRight: 'hold' }
-    ];
+    if (!this.maps) this.maps = this.loadMaps();
+    this.hostCode = ''; this.joinAnswer = '';
+    this.lastSend = 0;
     this.roundActive = false;
     this.overlayAt = 0; this.hudDirty = false; this.lastHud = 0; this.timers = [];
     this.onKeyDown = (e) => this.keyDown(e);
     this.onKeyUp = (e) => this.keyUp(e);
-    this.onBlur = () => { if (this.state.phase === 'playing') this.setState({ phase: 'paused' }); };
+    this.onBlur = () => { if (!this.netMode && this.state.phase === 'playing') this.setState({ phase: 'paused' }); };
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.onBlur);
@@ -254,10 +405,197 @@ class Component extends DCLogic {
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.onBlur);
     this.clearTimers();
+    if (this.net) { try { this.net.close(); } catch (e) {} this.net = null; }
     if (this.ac) this.ac.close();
   }
 
   clearTimers() { (this.timers || []).forEach(clearTimeout); this.timers = []; }
+
+  /* ---------- keybindings persistence ---------- */
+  defaultMaps() {
+    return [
+      { KeyA: 'left', KeyD: 'right', KeyS: 'soft', KeyW: 'rot', Space: 'hard', ShiftLeft: 'hold' },
+      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Enter: 'hard', ShiftRight: 'hold' }
+    ];
+  }
+  loadMaps() {
+    const def = this.defaultMaps();
+    try {
+      const raw = localStorage.getItem('stackDuelKeys');
+      if (!raw) return def;
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length === 2 && parsed[0] && parsed[1]
+        && typeof parsed[0] === 'object' && typeof parsed[1] === 'object') {
+        return [Object.assign({}, parsed[0]), Object.assign({}, parsed[1])];
+      }
+    } catch (e) {}
+    return def;
+  }
+  saveMaps() { try { localStorage.setItem('stackDuelKeys', JSON.stringify(this.maps)); } catch (e) {} }
+
+  keyFor(i, action) {
+    const m = this.maps[i];
+    for (const c in m) if (m[c] === action) return this.keyLabel(c);
+    return '—';
+  }
+  keyLabel(code) {
+    if (!code) return '—';
+    const m = {
+      ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓',
+      Space: 'SPACE', Enter: 'ENTER', ShiftLeft: 'L-SHIFT', ShiftRight: 'R-SHIFT',
+      ControlLeft: 'L-CTRL', ControlRight: 'R-CTRL', AltLeft: 'L-ALT', AltRight: 'R-ALT',
+      Tab: 'TAB', Backspace: 'BSPC', Comma: ',', Period: '.', Slash: '/', Semicolon: ';',
+      Quote: "'", BracketLeft: '[', BracketRight: ']', Backslash: '\\', Backquote: '`',
+      Minus: '-', Equal: '='
+    };
+    if (m[code]) return m[code];
+    if (code.startsWith('Key')) return code.slice(3);
+    if (code.startsWith('Digit')) return code.slice(5);
+    if (code.startsWith('Numpad')) return 'NUM ' + code.slice(6);
+    return code;
+  }
+  startListen = (i, act) => { this.setState({ keyListen: { player: i, action: act } }); };
+  assignKey(player, action, code) {
+    const m = Object.assign({}, this.maps[player]);
+    for (const c in m) if (m[c] === action) delete m[c];
+    delete m[code];
+    m[code] = action;
+    const maps = [this.maps[0], this.maps[1]];
+    maps[player] = m;
+    this.maps = maps;
+    this.saveMaps();
+    this.snd('rotate');
+    this.setState({ keyListen: null });
+  }
+  resetKeys = () => { this.maps = this.defaultMaps(); this.saveMaps(); this.snd('hold'); this.setState({ keyListen: null }); };
+
+  /* ---------- online (P2P) ---------- */
+  _newLink() {
+    if (this.net) { try { this.net.close(); } catch (e) {} }
+    this.net = new NetLink((m) => this.onMsg(m), (s) => this.onNetState(s));
+  }
+  closeNet() { if (this.net) { try { this.net.close(); } catch (e) {} this.net = null; } this.netMode = false; }
+  _copy(text) {
+    if (!text) return;
+    try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text); } catch (e) {}
+  }
+
+  openControls = () => { this.ensureAC(); this.setState({ phase: 'controls', keyListen: null }); };
+  openHost = () => {
+    this.ensureAC();
+    this.myIdx = 0; this.hostCode = ''; this.joinAnswer = '';
+    this._newLink();
+    this.setState({ phase: 'host', netStatus: 'Creating invite code…', netStatusKind: '' });
+    this.net.host().then(code => {
+      this.hostCode = code;
+      if (this.elHostCode) this.elHostCode.value = code;
+      this.setState({ netStatus: 'Waiting for the reply code…', netStatusKind: '' });
+    }).catch(e => this.setState({ netStatus: 'Could not create code: ' + e.message, netStatusKind: 'err' }));
+  };
+  openJoin = () => {
+    this.ensureAC();
+    this.myIdx = 1; this.hostCode = ''; this.joinAnswer = '';
+    this._newLink();
+    this.setState({ phase: 'join', netStatus: '', netStatusKind: '' });
+  };
+  copyHost = () => this._copy(this.elHostCode && this.elHostCode.value);
+  copyJoin = () => this._copy(this.elJoinAnswer && this.elJoinAnswer.value);
+  hostConnect = () => {
+    const v = this.elHostAnswer && this.elHostAnswer.value;
+    if (!v) { this.setState({ netStatus: 'Paste the reply code first.', netStatusKind: 'err' }); return; }
+    this.setState({ netStatus: 'Connecting…', netStatusKind: '' });
+    this.net.acceptAnswer(v).catch(e => this.setState({ netStatus: 'That code did not parse — paste the full reply code.', netStatusKind: 'err' }));
+  };
+  joinReply = () => {
+    const v = this.elJoinCode && this.elJoinCode.value;
+    if (!v) { this.setState({ netStatus: 'Paste the invite code first.', netStatusKind: 'err' }); return; }
+    this.setState({ netStatus: 'Creating reply code…', netStatusKind: '' });
+    this.net.join(v).then(code => {
+      this.joinAnswer = code;
+      if (this.elJoinAnswer) this.elJoinAnswer.value = code;
+      this.setState({ netStatus: 'Send the reply code to the host, then wait…', netStatusKind: '' });
+    }).catch(e => this.setState({ netStatus: 'That code did not parse — paste the full invite code.', netStatusKind: 'err' }));
+  };
+  backToMenu = () => {
+    this.closeNet();
+    this.clearTimers();
+    this.roundActive = false;
+    this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '' });
+  };
+
+  refHostCode = (el) => { this.elHostCode = el; if (el && this.hostCode) el.value = this.hostCode; };
+  refHostAnswer = (el) => { this.elHostAnswer = el; };
+  refJoinCode = (el) => { this.elJoinCode = el; };
+  refJoinAnswer = (el) => { this.elJoinAnswer = el; if (el && this.joinAnswer) el.value = this.joinAnswer; };
+
+  onNetState(s) {
+    if (s === 'open') {
+      this.netMode = true;
+      if (this.myIdx === 0) {
+        const round = 1, wins = [0, 0];
+        this.net.send({ t: 'start', round, wins });
+        this.setState({ round, wins });
+        this.startRound();
+      } else {
+        this.setState({ netStatus: 'Connected! Waiting for host to start…', netStatusKind: 'ok' });
+      }
+    } else if (s === 'failed' || s === 'disconnected' || s === 'closed') {
+      if (this.netMode) {
+        this.netMode = false;
+        this.roundActive = false;
+        this.clearTimers();
+        this.closeNet();
+        this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
+      }
+    }
+  }
+  onMsg(m) {
+    if (!m || !this.players) return;
+    if (m.t === 'start') {
+      this.setState({ round: m.round, wins: m.wins });
+      this.startRound();
+    } else if (m.t === 'b') {
+      const rp = this.players[1 - this.myIdx];
+      rp.grid = this.unpackGrid(m.g);
+      rp.cur = m.c ? { type: m.c.t, rot: m.c.r, x: m.c.x, y: m.c.y } : null;
+      rp.hold = m.h; rp.holdUsed = m.hu;
+      rp.queue = (m.n || []).slice();
+      rp.score = m.s; rp.lines = m.l; rp.level = m.lv; rp.pending = m.pd;
+      rp.clearing = m.cl ? { rows: m.cl, t: 0 } : null;
+      this.hudDirty = true;
+    } else if (m.t === 'g') {
+      const me = this.players[this.myIdx];
+      for (let i = 0; i < m.rows; i++) me.holes.push(m.hole);
+      me.pending = me.holes.length;
+      this.hudDirty = true;
+      this.snd('warn');
+    } else if (m.t === 'over') {
+      this._endRound(this.myIdx);
+    }
+  }
+  packGrid(grid) { return grid.map(row => row.map(v => v || '.').join('')).join('|'); }
+  unpackGrid(str) { return str.split('|').map(r => r.split('').map(ch => ch === '.' ? null : ch)); }
+  sendBoard() {
+    const p = this.players[this.myIdx];
+    this.net.send({
+      t: 'b',
+      g: this.packGrid(p.grid),
+      c: p.cur ? { t: p.cur.type, r: p.cur.rot, x: p.cur.x, y: p.cur.y } : null,
+      h: p.hold, hu: p.holdUsed,
+      n: [p.queue[0] || null, p.queue[1] || null, p.queue[2] || null],
+      s: p.score, l: p.lines, lv: p.level, pd: p.pending,
+      cl: p.clearing ? p.clearing.rows : null
+    });
+  }
+  netAdvance() {
+    const s = this.state;
+    let round = s.round, wins = s.wins;
+    if (s.phase === 'roundover') { round = round + 1; }
+    else { round = 1; wins = [0, 0]; }
+    if (this.net) this.net.send({ t: 'start', round, wins });
+    this.setState({ round, wins });
+    this.startRound();
+  }
 
   buildRots() {
     const base = {
@@ -286,7 +624,7 @@ class Component extends DCLogic {
       idx, grid: Array.from({ length: this.ROWS }, () => Array(this.COLS).fill(null)),
       bag: [], queue: [], cur: null, hold: null, holdUsed: false,
       score: 0, lines: 0, level: this.startLevel(), gravAcc: 0, soft: false,
-      das: null, lockT: 0, lockResets: 0, clearing: null, pending: 0
+      das: null, lockT: 0, lockResets: 0, clearing: null, pending: 0, holes: []
     };
   }
 
@@ -419,9 +757,16 @@ class Component extends DCLogic {
     let atk = this.GARB[n];
     const cancel = Math.min(p.pending, atk);
     p.pending -= cancel; atk -= cancel;
+    if (this.netMode) p.holes.splice(0, cancel);
     if (atk > 0) {
-      this.players[1 - p.idx].pending += atk;
-      this.snd('warn');
+      if (this.netMode) {
+        const hole = Math.floor(Math.random() * this.COLS);
+        if (this.net) this.net.send({ t: 'g', rows: atk, hole });
+        this.snd('warn');
+      } else {
+        this.players[1 - p.idx].pending += atk;
+        this.snd('warn');
+      }
     }
     this.hudDirty = true;
     this.afterLock(p);
@@ -432,11 +777,19 @@ class Component extends DCLogic {
     if (p.pending > 0) {
       const n = Math.min(p.pending, 8);
       p.pending -= n;
-      const hole = Math.floor(Math.random() * this.COLS);
       p.grid.splice(0, n);
-      for (let i = 0; i < n; i++) {
-        const row = Array(this.COLS).fill('G'); row[hole] = null;
-        p.grid.push(row);
+      if (this.netMode) {
+        for (let i = 0; i < n; i++) {
+          const hole = p.holes.length ? p.holes.shift() : Math.floor(Math.random() * this.COLS);
+          const row = Array(this.COLS).fill('G'); row[hole] = null;
+          p.grid.push(row);
+        }
+      } else {
+        const hole = Math.floor(Math.random() * this.COLS);
+        for (let i = 0; i < n; i++) {
+          const row = Array(this.COLS).fill('G'); row[hole] = null;
+          p.grid.push(row);
+        }
       }
       this.snd('garbage');
     }
@@ -446,15 +799,21 @@ class Component extends DCLogic {
 
   topOut(loser) {
     if (!this.roundActive) return;
-    this.roundActive = false;
     const w = 1 - loser.idx;
+    if (this.netMode && this.net) this.net.send({ t: 'over' });
+    this._endRound(w);
+  }
+
+  _endRound(winnerIdx) {
+    if (!this.roundActive) return;
+    this.roundActive = false;
     const wins = [this.state.wins[0], this.state.wins[1]];
-    wins[w]++;
+    wins[winnerIdx]++;
     this.snd('lose');
-    this.timers.push(setTimeout(() => this.snd(wins[w] >= 2 ? 'matchwin' : 'win'), 380));
+    this.timers.push(setTimeout(() => this.snd(wins[winnerIdx] >= 2 ? 'matchwin' : 'win'), 380));
     this.overlayAt = performance.now();
     this.syncHud();
-    this.setState({ wins, lastWinner: w, phase: wins[w] >= 2 ? 'matchover' : 'roundover' });
+    this.setState({ wins, lastWinner: winnerIdx, phase: wins[winnerIdx] >= 2 ? 'matchover' : 'roundover' });
   }
 
   startRound() {
@@ -482,6 +841,11 @@ class Component extends DCLogic {
     if (performance.now() - this.overlayAt < 450) return;
     this.ensureAC();
     const ph = this.state.phase;
+    if (this.netMode) {
+      if (this.myIdx !== 0) return; // only host controls round flow
+      if (ph === 'roundover' || ph === 'matchover') this.netAdvance();
+      return;
+    }
     if (ph === 'menu') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
     else if (ph === 'roundover') { this.setState({ round: this.state.round + 1 }); this.startRound(); }
     else if (ph === 'matchover') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
@@ -491,12 +855,25 @@ class Component extends DCLogic {
 
   keyDown(e) {
     const code = e.code;
+    const tag = e.target && e.target.tagName;
+    // let native typing/paste work in the online signaling text fields
+    if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+    // rebinding capture (Controls screen)
+    if (this.state.keyListen) {
+      e.preventDefault();
+      if (e.repeat) return;
+      const kl = this.state.keyListen;
+      if (code === 'Escape') { this.setState({ keyListen: null }); return; }
+      if (code === 'KeyM' || code === 'KeyP') return; // reserved keys can't be rebound
+      this.assignKey(kl.player, kl.action, code);
+      return;
+    }
     if (code === 'Space' || code === 'Enter' || code.indexOf('Arrow') === 0) e.preventDefault();
     if (e.repeat) return;
     this.ensureAC();
     const ph = this.state.phase;
     if (code === 'KeyM') { this.toggleMute(); return; }
-    if ((code === 'KeyP' || code === 'Escape') && (ph === 'playing' || ph === 'paused')) {
+    if ((code === 'KeyP' || code === 'Escape') && !this.netMode && (ph === 'playing' || ph === 'paused')) {
       if (ph === 'paused') this.last = performance.now();
       this.setState({ phase: ph === 'playing' ? 'paused' : 'playing' });
       return;
@@ -507,6 +884,7 @@ class Component extends DCLogic {
     }
     if (ph !== 'playing' || !this.roundActive) return;
     for (let i = 0; i < 2; i++) {
+      if (this.netMode && i !== this.myIdx) continue; // net: only local player's keys
       const act = this.maps[i][code];
       if (!act) continue;
       this.doAction(this.players[i], act);
@@ -528,6 +906,7 @@ class Component extends DCLogic {
   keyUp(e) {
     if (!this.players) return;
     for (let i = 0; i < 2; i++) {
+      if (this.netMode && i !== this.myIdx) continue;
       const act = this.maps[i][e.code];
       if (!act) continue;
       const p = this.players[i];
@@ -579,8 +958,15 @@ class Component extends DCLogic {
     const dt = Math.min(50, t - this.last);
     this.last = t;
     if (this.state.phase === 'playing' && this.roundActive) {
-      this.update(this.players[0], dt);
-      this.update(this.players[1], dt);
+      if (this.netMode) {
+        this.update(this.players[this.myIdx], dt); // only simulate the local board
+      } else {
+        this.update(this.players[0], dt);
+        this.update(this.players[1], dt);
+      }
+    }
+    if (this.netMode && this.net && this.state.phase === 'playing' && t - this.lastSend > 66) {
+      this.lastSend = t; this.sendBoard(); // ~15Hz board snapshot
     }
     this.drawAll();
     if (this.hudDirty && t - this.lastHud > 150) { this.lastHud = t; this.syncHud(); }
@@ -739,20 +1125,20 @@ class Component extends DCLogic {
       bd: s.wins[i] > k ? A[i] : '#CFCFC8'
     }));
     let kicker = '', title = '', sub = '', button = '';
+    const netTag = this.netMode ? 'ONLINE · YOU ARE ' + (this.myIdx === 0 ? n1 : n2) + '  ·  ' : '';
     if (ph === 'menu') {
       kicker = 'TWO PLAYER · FIRST TO 2 ROUNDS';
       title = 'STACK DUEL';
-      sub = 'Clear lines to dump garbage rows on your opponent. Top out and you lose the round.';
-      button = 'START MATCH';
+      sub = 'Clear lines to dump garbage on your opponent. Play local hot-seat or online against a friend — remap keys under CONTROLS.';
     } else if (ph === 'countdown') {
-      kicker = 'ROUND ' + s.round;
+      kicker = netTag + 'ROUND ' + s.round;
     } else if (ph === 'roundover') {
-      kicker = 'ROUND ' + s.round;
+      kicker = netTag + 'ROUND ' + s.round;
       title = names[s.lastWinner] + ' TAKES THE ROUND';
       sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
       button = 'NEXT ROUND';
     } else if (ph === 'matchover') {
-      kicker = 'MATCH OVER';
+      kicker = netTag + 'MATCH OVER';
       title = names[s.lastWinner] + ' WINS THE MATCH';
       sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
       button = 'REMATCH';
@@ -761,6 +1147,41 @@ class Component extends DCLogic {
       title = 'PAUSED';
       sub = 'Press P to resume.';
     }
+
+    const btnBase = 'font: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.16em; border: none; padding: 13px 26px; cursor: pointer; border-radius: 2px; min-width: 230px; box-sizing: border-box';
+    const btn = {
+      dark: btnBase + '; background: #1D1D1B; color: #F6F6F3',
+      blue: btnBase + '; background: #4E7FBE; color: #FFFFFF',
+      orange: btnBase + '; background: #C97A3D; color: #FFFFFF',
+      ghost: btnBase + '; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1'
+    };
+    const menuButtons = [
+      { lab: 'START LOCAL MATCH', style: btn.dark, onClick: this.advance },
+      { lab: 'HOST ONLINE GAME', style: btn.blue, onClick: this.openHost },
+      { lab: 'JOIN ONLINE GAME', style: btn.orange, onClick: this.openJoin },
+      { lab: 'CONTROLS', style: btn.ghost, onClick: this.openControls }
+    ];
+
+    const keyRows = (i) => this.ACTLIST.map(([act, lab]) => ({ lab, k: this.keyFor(i, act) }));
+    const kl = s.keyListen;
+    const editRows = (i) => this.ACTLIST.map(([act, lab]) => {
+      const listening = !!(kl && kl.player === i && kl.action === act);
+      return {
+        lab,
+        onClick: () => this.startListen(i, act),
+        disp: listening ? 'PRESS…' : this.keyFor(i, act),
+        bg: listening ? '#1D1D1B' : '#FFFFFF',
+        bd: listening ? '#1D1D1B' : '#D8D8D1',
+        fg: listening ? '#F6F6F3' : '#3A3A36'
+      };
+    });
+    const hintStr = (i) => {
+      const k = (a) => this.keyFor(i, a);
+      return k('left') + ' ' + k('right') + ' move · ' + k('rot') + ' rotate · ' + k('soft') + ' soft · ' + k('hard') + ' hard · ' + k('hold') + ' hold';
+    };
+
+    const showWaitHost = this.netMode && this.myIdx !== 0 && (ph === 'roundover' || ph === 'matchover');
+
     return {
       p1NameU: n1, p2NameU: n2,
       p1Score: s.p1.score, p1Lines: s.p1.lines, p1Level: s.p1.level,
@@ -769,18 +1190,35 @@ class Component extends DCLogic {
       p2IncomingShow: s.p2.incoming > 0, p2Incoming: '+' + s.p2.incoming,
       roundNum: s.round,
       p1Dots: dots(0), p2Dots: dots(1),
+      p1Hint: hintStr(0), p2Hint: hintStr(1),
+      p1Keys: keyRows(0), p2Keys: keyRows(1),
+      edit1: editRows(0), edit2: editRows(1),
+      menuButtons,
       overlayVisible: ph !== 'playing',
       showCountdown: ph === 'countdown',
-      showTitle: ph !== 'countdown',
+      showTitle: ph !== 'countdown' && ph !== 'controls' && ph !== 'host' && ph !== 'join',
       overlayKicker: kicker, overlayTitle: title,
       overlaySubShow: !!sub, overlaySub: sub,
       showControls: ph === 'menu',
-      showButton: ph === 'menu' || ph === 'roundover' || ph === 'matchover',
+      showMenuButtons: ph === 'menu',
+      showControlsEditor: ph === 'controls',
+      showHostScreen: ph === 'host',
+      showJoinScreen: ph === 'join',
+      showWaitHost: showWaitHost,
+      showButton: (ph === 'roundover' || ph === 'matchover') && !showWaitHost,
       buttonLabel: button,
       countdownText: s.countdown,
+      netStatus: s.netStatus,
+      netStatusColor: s.netStatusKind === 'err' ? '#C0392B' : (s.netStatusKind === 'ok' ? '#2F7D32' : '#8B8B85'),
       muteLabel: s.muted ? 'SOUND: OFF' : 'SOUND: ON',
       toggleMute: this.toggleMute,
       advance: this.advance,
+      openHost: this.openHost, openJoin: this.openJoin, openControls: this.openControls,
+      copyHost: this.copyHost, copyJoin: this.copyJoin,
+      hostConnect: this.hostConnect, joinReply: this.joinReply,
+      backToMenu: this.backToMenu, resetKeys: this.resetKeys,
+      refHostCode: this.refHostCode, refHostAnswer: this.refHostAnswer,
+      refJoinCode: this.refJoinCode, refJoinAnswer: this.refJoinAnswer,
       refBoard1: this.refBoard1, refBoard2: this.refBoard2,
       refHold1: this.refHold1, refHold2: this.refHold2,
       refNext1: this.refNext1, refNext2: this.refNext2
