@@ -357,9 +357,12 @@ class Component extends DCLogic {
   ACTLIST = [['left', 'MOVE LEFT'], ['right', 'MOVE RIGHT'], ['rot', 'ROTATE'], ['soft', 'SOFT DROP'], ['hard', 'HARD DROP'], ['hold', 'HOLD']];
   maps = this.loadMaps();
   netMode = false; myIdx = 0; net = null;
+  // In P2P net mode each player drives their own board with arrows + Space
+  // (custom keybindings apply to local hot-seat only).
+  NETMAP = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Space: 'hard', ShiftLeft: 'hold', ShiftRight: 'hold' };
 
   COLS = 10; ROWS = 22; HID = 2; CELL = 30;
-  DAS = 150; ARR = 45; SOFT = 40; LOCK = 480; CLEARMS = 150; MAXRESET = 15;
+  DAS = 150; ARR = 45; SOFT = 90; LOCK = 480; CLEARMS = 150; MAXRESET = 15;
   GARB = [0, 0, 1, 2, 4];
   COLORS = { I: '#5FA8CF', J: '#7E8CD8', L: '#DFA35B', O: '#D9BE58', S: '#7FBB8C', T: '#B48CD3', Z: '#DB8578', G: '#C6C6BF' };
   ACCENTS = ['#4E7FBE', '#C97A3D'];
@@ -434,7 +437,7 @@ class Component extends DCLogic {
   saveMaps() { try { localStorage.setItem('stackDuelKeys', JSON.stringify(this.maps)); } catch (e) {} }
 
   keyFor(i, action) {
-    const m = this.maps[i];
+    const m = this.netMode ? this.NETMAP : this.maps[i];
     for (const c in m) if (m[c] === action) return this.keyLabel(c);
     return '—';
   }
@@ -885,7 +888,7 @@ class Component extends DCLogic {
     if (ph !== 'playing' || !this.roundActive) return;
     for (let i = 0; i < 2; i++) {
       if (this.netMode && i !== this.myIdx) continue; // net: only local player's keys
-      const act = this.maps[i][code];
+      const act = this.netMode ? this.NETMAP[code] : this.maps[i][code];
       if (!act) continue;
       this.doAction(this.players[i], act);
     }
@@ -907,7 +910,7 @@ class Component extends DCLogic {
     if (!this.players) return;
     for (let i = 0; i < 2; i++) {
       if (this.netMode && i !== this.myIdx) continue;
-      const act = this.maps[i][e.code];
+      const act = this.netMode ? this.NETMAP[e.code] : this.maps[i][e.code];
       if (!act) continue;
       const p = this.players[i];
       if (act === 'left' || act === 'right') {
