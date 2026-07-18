@@ -1254,7 +1254,21 @@ class Component extends DCLogic {
   (function () {
     function apply() {
       var el = document.getElementById('version-badge');
-      if (el) el.textContent = 'v' + (window.GAME_VERSION || '0.0.0');
+      if (!el) return;
+      var v = 'v' + (window.GAME_VERSION || '0.0.0');
+      var a = el.querySelector('a');
+      if (!a) {
+        el.textContent = '';
+        a = document.createElement('a');
+        a.href = 'https://github.com/freaxnx01/game-stack-duel/blob/main/CHANGELOG.md';
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.title = 'Changelog';
+        a.style.color = 'inherit';
+        a.style.textDecoration = 'none';
+        el.appendChild(a);
+      }
+      a.textContent = v;
     }
     apply();
     var n = 0, iv = setInterval(function () { apply(); if (++n > 40) clearInterval(iv); }, 250);
