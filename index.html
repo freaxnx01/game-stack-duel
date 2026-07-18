@@ -6,6 +6,7 @@
 <script src="./support.js"></script>
 </head>
 <body>
+<script src="./version.js"></script>
 <x-dc>
 <helmet>
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -261,6 +262,8 @@ a:hover { color: #38639C; text-decoration: underline; }
      just before </body>. See docs/superpowers/specs/2026-07-13-game-card-feedback-star-design.md
      for design rationale. -->
 <nav id="game-nav" aria-label="Game navigation" style="position:fixed;right:10px;bottom:8px;z-index:2147483647;display:flex;gap:12px;align-items:center;font:600 13px/1.4 system-ui,-apple-system,sans-serif;padding:6px 11px;border-radius:8px;background:rgba(15,17,26,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);opacity:.55;transition:opacity .2s" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=.55">
+  <span id="version-badge" title="Version" style="color:#5a6072"></span>
+  <span style="color:#5a6072" aria-hidden="true">·</span>
   <a href="https://github.freaxnx01.ch/games/" style="color:#8fd8e8;text-decoration:none">More Games…</a>
   <span style="color:#5a6072" aria-hidden="true">·</span>
   <a href="https://github.com/freaxnx01/game-stack-duel" target="_blank" rel="noopener" style="color:#8fd8e8;text-decoration:none">Source</a>
@@ -1242,6 +1245,22 @@ class Component extends DCLogic {
     };
   }
 }
+</script>
+<script>
+  /* The dc bundler replaces <x-dc> with a freshly React-rendered subtree once
+     its async boot completes, discarding whatever this script wrote to the
+     original #version-badge node first. Poll/re-apply so the badge survives
+     that remount (mirrors game-dustline's self-healing nav/badge IIFE). */
+  (function () {
+    function apply() {
+      var el = document.getElementById('version-badge');
+      if (el) el.textContent = 'v' + (window.GAME_VERSION || '0.0.0');
+    }
+    apply();
+    var n = 0, iv = setInterval(function () { apply(); if (++n > 40) clearInterval(iv); }, 250);
+    document.addEventListener('DOMContentLoaded', apply);
+    window.addEventListener('load', apply);
+  })();
 </script>
 </body>
 </html>
