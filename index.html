@@ -766,6 +766,20 @@ class Component extends DCLogic {
     }
   }
 
+  chooseTarget(attackerIdx) {
+    const candidates = [];
+    for (let i = 0; i < this.playerAlive.length; i++) {
+      if (i !== attackerIdx && this.playerAlive[i]) candidates.push(i);
+    }
+    if (!candidates.length) return -1;
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  sendAttack(attackerIdx, rows, hole) {
+    // Replaced in Task 4 with host-relay logic; hotseat mode never reaches here.
+    if (this.net) this.net.send({ t: 'atk', pi: attackerIdx, rows, hole });
+  }
+
   finishClear(p) {
     const rows = p.clearing.rows; p.clearing = null;
     p.grid = p.grid.filter((_, r) => rows.indexOf(r) === -1);
@@ -782,10 +796,11 @@ class Component extends DCLogic {
     if (atk > 0) {
       if (this.netMode) {
         const hole = Math.floor(Math.random() * this.COLS);
-        if (this.net) this.net.send({ t: 'g', rows: atk, hole });
+        this.sendAttack(p.idx, atk, hole);
         this.snd('warn');
       } else {
-        this.players[1 - p.idx].pending += atk;
+        const targetIdx = this.chooseTarget(p.idx);
+        if (targetIdx >= 0) this.players[targetIdx].pending += atk;
         this.snd('warn');
       }
     }
@@ -820,15 +835,22 @@ class Component extends DCLogic {
 
   topOut(loser) {
     if (!this.roundActive) return;
-    const w = 1 - loser.idx;
-    if (this.netMode && this.net) this.net.send({ t: 'over' });
-    this._endRound(w);
+    this.markOut(loser.idx);
+    if (this.netMode && this.net) this.net.send({ t: 'over', pi: loser.idx });
+  }
+
+  markOut(idx) {
+    if (!this.playerAlive[idx]) return;
+    this.playerAlive[idx] = false;
+    const survivors = [];
+    for (let i = 0; i < this.playerAlive.length; i++) if (this.playerAlive[i]) survivors.push(i);
+    if (survivors.length === 1) this._endRound(survivors[0]);
   }
 
   _endRound(winnerIdx) {
     if (!this.roundActive) return;
     this.roundActive = false;
-    const wins = [this.state.wins[0], this.state.wins[1]];
+    const wins = this.state.wins.slice();
     wins[winnerIdx]++;
     this.snd('lose');
     this.timers.push(setTimeout(() => this.snd(wins[winnerIdx] >= 2 ? 'matchwin' : 'win'), 380));
@@ -839,8 +861,9 @@ class Component extends DCLogic {
 
   startRound() {
     this.clearTimers();
-    this.players = [this.makePlayer(0), this.makePlayer(1)];
+    this.players = Array.from({ length: this.playerCount }, (_, i) => this.makePlayer(i));
     this.players.forEach(p => this.fillQueue(p));
+    this.playerAlive = this.players.map(() => true);
     this.roundActive = false;
     this.syncHud();
     this.setState({ phase: 'countdown', countdown: '3' });
@@ -867,9 +890,9 @@ class Component extends DCLogic {
       if (ph === 'roundover' || ph === 'matchover') this.netAdvance();
       return;
     }
-    if (ph === 'menu') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
+    if (ph === 'menu') { this.setState({ round: 1, wins: this.players.map(() => 0) }); this.startRound(); }
     else if (ph === 'roundover') { this.setState({ round: this.state.round + 1 }); this.startRound(); }
-    else if (ph === 'matchover') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
+    else if (ph === 'matchover') { this.setState({ round: 1, wins: this.players.map(() => 0) }); this.startRound(); }
   };
 
   toggleMute = () => { this.ensureAC(); this.setState(s => ({ muted: !s.muted })); };
