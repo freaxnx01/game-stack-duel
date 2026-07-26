@@ -604,6 +604,10 @@ class Component extends DCLogic {
   }
   onMsg(m) {
     if (!m || !this.players) return;
+    if (m.t === 'welcome') {
+      this.myIdx = m.idx; this.playerCount = m.playerCount;
+      return;
+    }
     if (m.t === 'start') {
       this.setState({ round: m.round, wins: m.wins });
       this.startRound();
