@@ -68,7 +68,7 @@ a:hover { color: #38639C; text-decoration: underline; }
               <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p1Incoming }} INCOMING</div>
             </sc-if>
           </div>
-          <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block; opacity: {{ p1BoardOpacity }}"></canvas>
           <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p1Hint }}</div>
         </div>
 
@@ -114,7 +114,7 @@ a:hover { color: #38639C; text-decoration: underline; }
               <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p2Incoming }} INCOMING</div>
             </sc-if>
           </div>
-          <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block; opacity: {{ p2BoardOpacity }}"></canvas>
           <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p2Hint }}</div>
         </div>
 
@@ -639,6 +639,7 @@ class Component extends DCLogic {
         this.roundActive = false;
         this.clearTimers();
         this.closeNet();
+        this.playerCount = 2;
         this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
       }
     }
@@ -700,12 +701,17 @@ class Component extends DCLogic {
   }
 
   _handleGuestDrop(guestIdx) {
+    if (!this.netMode) {
+      this.setState({ netStatus: 'Connection lost — try generating a new invite code.', netStatusKind: 'err' });
+      return;
+    }
     if (this.playerCount === 2) {
       // Preserve exact 2-player behavior: any drop ends the match.
       this.netMode = false;
       this.roundActive = false;
       this.clearTimers();
       this.closeNet();
+      this.playerCount = 2;
       this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
       return;
     }
@@ -719,6 +725,7 @@ class Component extends DCLogic {
       this.roundActive = false;
       this.clearTimers();
       this.closeNet();
+      this.playerCount = 2;
       this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
     }
   }
@@ -1075,6 +1082,7 @@ class Component extends DCLogic {
     if (ph !== 'playing' || !this.roundActive) return;
     for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue; // net: only local player's keys
+      if (this.playerAlive && !this.playerAlive[i]) continue;
       const act = this.netMode ? this.NETMAP[code] : this.maps[i][code];
       if (!act) continue;
       this.doAction(this.players[i], act);
@@ -1097,6 +1105,7 @@ class Component extends DCLogic {
     if (!this.players) return;
     for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue;
+      if (this.playerAlive && !this.playerAlive[i]) continue;
       const act = this.netMode ? this.NETMAP[e.code] : this.maps[i][e.code];
       if (!act) continue;
       const p = this.players[i];
@@ -1420,6 +1429,8 @@ class Component extends DCLogic {
       refBoard1: this.refBoardFns[0], refBoard2: this.refBoardFns[1],
       refHold1: this.refHoldFns[0], refHold2: this.refHoldFns[1],
       refNext1: this.refNextFns[0], refNext2: this.refNextFns[1],
+      p1BoardOpacity: (s.players[0] && s.players[0].out) ? 0.35 : 1,
+      p2BoardOpacity: (s.players[1] && s.players[1].out) ? 0.35 : 1,
       p3NameU: n3,
       p3Score: s.players[2] ? s.players[2].score : 0,
       p3Lines: s.players[2] ? s.players[2].lines : 0,
@@ -1441,5 +1452,6 @@ class Component extends DCLogic {
   }
 }
 </script>
+
 </body>
 </html>
