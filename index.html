@@ -442,6 +442,10 @@ class Component extends DCLogic {
   COLORS = { I: '#5FA8CF', J: '#7E8CD8', L: '#DFA35B', O: '#D9BE58', S: '#7FBB8C', T: '#B48CD3', Z: '#DB8578', G: '#C6C6BF' };
   ACCENTS = ['#4E7FBE', '#C97A3D', '#5A9E6F'];
   playerCount = 2;
+  cvB = []; cvH = []; cvN = [];
+  refBoardFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvB, i, 300, 600));
+  refHoldFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvH, i, 72, 40));
+  refNextFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvN, i, 72, 124));
 
   makeCanvasRef(arr, i, w, h) {
     return (el) => {
@@ -454,10 +458,6 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this.buildRots();
-    this.cvB = []; this.cvH = []; this.cvN = [];
-    this.refBoardFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvB, i, 300, 600));
-    this.refHoldFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvH, i, 72, 40));
-    this.refNextFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvN, i, 72, 124));
     this.players = [this.makePlayer(0), this.makePlayer(1)];
     this.players.forEach(p => this.fillQueue(p));
     if (!this.maps) this.maps = this.loadMaps();
@@ -613,6 +613,7 @@ class Component extends DCLogic {
     this.closeNet();
     this.clearTimers();
     this.roundActive = false;
+    this.playerCount = 2;
     this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '' });
   };
 
@@ -636,7 +637,7 @@ class Component extends DCLogic {
         return;
       }
       this.netMode = true;
-      const round = 1, wins = this.players ? this.players.map(() => 0) : Array(this.playerCount).fill(0);
+      const round = 1, wins = Array(this.playerCount).fill(0);
       this.nets.forEach(n => n.send({ t: 'start', round, wins }));
       this.setState({ round, wins });
       this.startRound();
@@ -646,7 +647,10 @@ class Component extends DCLogic {
   }
 
   _onGuestNetState(s) {
-    if (s === 'failed' || s === 'disconnected' || s === 'closed') {
+    if (s === 'open') {
+      this.netMode = true;
+      this.setState({ netStatus: 'Connected! Waiting for host to start…', netStatusKind: 'ok' });
+    } else if (s === 'failed' || s === 'disconnected' || s === 'closed') {
       if (this.netMode) {
         this.netMode = false;
         this.roundActive = false;
@@ -655,8 +659,6 @@ class Component extends DCLogic {
         this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
       }
     }
-    // 'open' for a guest is a no-op here — the guest waits for the host's
-    // 'welcome' and 'start' messages (see onMsg in Task 4).
   }
   onMsg(m, fromNetIdx) {
     if (!m) return;
@@ -790,7 +792,7 @@ class Component extends DCLogic {
       idx, grid: Array.from({ length: this.ROWS }, () => Array(this.COLS).fill(null)),
       bag: [], queue: [], cur: null, hold: null, holdUsed: false,
       score: 0, lines: 0, level: this.startLevel(), gravAcc: 0, soft: false,
-      das: null, lockT: 0, lockResets: 0, clearing: null, pending: 0, holes: []
+      das: null, lockT: 0, lockResets: 0, clearing: null, pending: 0, holes: [], out: false
     };
   }
 
@@ -1002,6 +1004,7 @@ class Component extends DCLogic {
   markOut(idx) {
     if (!this.playerAlive[idx]) return;
     this.playerAlive[idx] = false;
+    if (this.players[idx]) this.players[idx].out = true;
     const survivors = [];
     for (let i = 0; i < this.playerAlive.length; i++) if (this.playerAlive[i]) survivors.push(i);
     if (survivors.length === 1) this._endRound(survivors[0]);
@@ -1087,7 +1090,7 @@ class Component extends DCLogic {
       return;
     }
     if (ph !== 'playing' || !this.roundActive) return;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue; // net: only local player's keys
       const act = this.netMode ? this.NETMAP[code] : this.maps[i][code];
       if (!act) continue;
@@ -1109,7 +1112,7 @@ class Component extends DCLogic {
 
   keyUp(e) {
     if (!this.players) return;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue;
       const act = this.netMode ? this.NETMAP[e.code] : this.maps[i][e.code];
       if (!act) continue;
@@ -1125,6 +1128,7 @@ class Component extends DCLogic {
 
   update(p, dt) {
     if (!this.roundActive) return;
+    if (!this.playerAlive[p.idx]) return;
     if (p.clearing) {
       p.clearing.t += dt;
       if (p.clearing.t >= this.CLEARMS) this.finishClear(p);
@@ -1323,7 +1327,8 @@ class Component extends DCLogic {
     const boardH = boardW * 2;
     const n1 = String(this.props.p1Name ?? 'Player 1').toUpperCase();
     const n2 = String(this.props.p2Name ?? 'Player 2').toUpperCase();
-    const names = [n1, n2];
+    const n3 = 'PLAYER 3';
+    const names = [n1, n2, n3];
     const ph = s.phase;
     const A = this.ACCENTS;
     const dots = (i) => [0, 1].map(k => ({
@@ -1331,7 +1336,7 @@ class Component extends DCLogic {
       bd: s.wins[i] > k ? A[i] : '#CFCFC8'
     }));
     let kicker = '', title = '', sub = '', button = '';
-    const netTag = this.netMode ? 'ONLINE · YOU ARE ' + (this.myIdx === 0 ? n1 : n2) + '  ·  ' : '';
+    const netTag = this.netMode ? 'ONLINE · YOU ARE ' + names[this.myIdx] + '  ·  ' : '';
     if (ph === 'menu') {
       kicker = 'TWO PLAYER · FIRST TO 2 ROUNDS';
       title = 'STACK DUEL';
@@ -1341,12 +1346,16 @@ class Component extends DCLogic {
     } else if (ph === 'roundover') {
       kicker = netTag + 'ROUND ' + s.round;
       title = names[s.lastWinner] + ' TAKES THE ROUND';
-      sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
+      sub = this.playerCount === 3
+        ? n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + ' — ' + s.wins[2] + '  ' + n3
+        : n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
       button = 'NEXT ROUND';
     } else if (ph === 'matchover') {
       kicker = netTag + 'MATCH OVER';
       title = names[s.lastWinner] + ' WINS THE MATCH';
-      sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
+      sub = this.playerCount === 3
+        ? n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + ' — ' + s.wins[2] + '  ' + n3
+        : n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
       button = 'REMATCH';
     } else if (ph === 'paused') {
       kicker = 'ROUND ' + s.round;
@@ -1428,17 +1437,14 @@ class Component extends DCLogic {
       refBoard1: this.refBoardFns[0], refBoard2: this.refBoardFns[1],
       refHold1: this.refHoldFns[0], refHold2: this.refHoldFns[1],
       refNext1: this.refNextFns[0], refNext2: this.refNextFns[1],
-      p3NameU: 'PLAYER 3',
+      p3NameU: n3,
       p3Score: s.players[2] ? s.players[2].score : 0,
       p3Lines: s.players[2] ? s.players[2].lines : 0,
       p3Level: s.players[2] ? s.players[2].level : 1,
       p3IncomingShow: !!(s.players[2] && s.players[2].incoming > 0),
       p3Incoming: '+' + (s.players[2] ? s.players[2].incoming : 0),
       p3BoardOpacity: (s.players[2] && s.players[2].out) ? 0.35 : 1,
-      p3Dots: [0, 1].map(k => ({
-        bg: (s.wins[2] || 0) > k ? this.ACCENTS[2] : 'rgba(0,0,0,0)',
-        bd: (s.wins[2] || 0) > k ? this.ACCENTS[2] : '#CFCFC8'
-      })),
+      p3Dots: dots(2),
       p3Hint: hintStr(2),
       isThreePlayer: this.playerCount === 3,
       boardW, boardH,
