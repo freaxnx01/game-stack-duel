@@ -937,7 +937,10 @@ class Component extends DCLogic {
   topOut(loser) {
     if (!this.roundActive) return;
     this.markOut(loser.idx);
-    if (this.netMode && this.net) this.net.send({ t: 'over', pi: loser.idx });
+    if (!this.netMode) return;
+    const msg = { t: 'over', pi: loser.idx };
+    if (this.myIdx === 0) this.nets.forEach(n => n.send(msg));
+    else if (this.net) this.net.send(msg);
   }
 
   markOut(idx) {
