@@ -622,7 +622,7 @@ class Component extends DCLogic {
       }
       this.netMode = true;
       const round = 1, wins = Array(this.playerCount).fill(0);
-      this.nets.forEach(n => n.send({ t: 'start', round, wins }));
+      this.nets.forEach(n => n.send({ t: 'start', round, wins, dropped: [...this.droppedGuests] }));
       this.setState({ round, wins });
       this.startRound();
     } else if (s === 'failed' || s === 'disconnected' || s === 'closed') {
@@ -652,6 +652,7 @@ class Component extends DCLogic {
       return;
     }
     if (m.t === 'start') {
+      this.droppedGuests = new Set(m.dropped || []);
       this.setState({ round: m.round, wins: m.wins });
       this.startRound();
       return;
@@ -761,7 +762,7 @@ class Component extends DCLogic {
     let round = s.round, wins = s.wins;
     if (s.phase === 'roundover') { round = round + 1; }
     else { round = 1; wins = this.players.map(() => 0); }
-    this.nets.forEach(n => n.send({ t: 'start', round, wins }));
+    this.nets.forEach(n => n.send({ t: 'start', round, wins, dropped: [...this.droppedGuests] }));
     this.setState({ round, wins });
     this.startRound();
   }
