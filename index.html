@@ -495,27 +495,43 @@ class Component extends DCLogic {
     if (this.net) { try { this.net.close(); } catch (e) {} }
     this.net = new NetLink((m) => this.onMsg(m), (s) => this.onNetState(s));
   }
-  closeNet() { if (this.net) { try { this.net.close(); } catch (e) {} this.net = null; } this.netMode = false; }
+  closeNet() {
+    (this.nets || []).forEach(n => { try { n.close(); } catch (e) {} });
+    this.nets = [];
+    if (this.net) { try { this.net.close(); } catch (e) {} this.net = null; }
+    this.netMode = false;
+  }
   _copy(text) {
     if (!text) return;
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text); } catch (e) {}
   }
 
   openControls = () => { this.ensureAC(); this.setState({ phase: 'controls', keyListen: null }); };
+  chooseHostPlayerCount = (n) => { this.playerCount = n; this.setState({}); };
   openHost = () => {
     this.ensureAC();
-    this.myIdx = 0; this.hostCode = ''; this.joinAnswer = '';
-    this._newLink();
+    this.myIdx = 0; this.nets = []; this.hostGuestIdx = 0;
+    this.hostCode = ''; this.joinAnswer = '';
     this.setState({ phase: 'host', netStatus: 'Creating invite code…', netStatusKind: '' });
-    this.net.host().then(code => {
+    this._hostNextGuest();
+  };
+
+  _hostNextGuest() {
+    const i = this.hostGuestIdx;
+    const link = new NetLink((m) => this.onMsg(m, i), (s) => this.onNetState(s, i));
+    this.nets[i] = link;
+    this.net = link; // the currently-active link, for the host/join screen refs below
+    link.host().then(code => {
       this.hostCode = code;
       if (this.elHostCode) this.elHostCode.value = code;
-      this.setState({ netStatus: 'Waiting for the reply code…', netStatusKind: '' });
+      const label = this.playerCount === 3 ? 'guest ' + (i + 1) + ' of 2' : 'your friend';
+      if (this.elHostAnswer) this.elHostAnswer.value = '';
+      this.setState({ netStatus: 'Waiting for the reply code from ' + label + '…', netStatusKind: '' });
     }).catch(e => this.setState({ netStatus: 'Could not create code: ' + e.message, netStatusKind: 'err' }));
-  };
+  }
   openJoin = () => {
     this.ensureAC();
-    this.myIdx = 1; this.hostCode = ''; this.joinAnswer = '';
+    this.myIdx = null; this.hostCode = ''; this.joinAnswer = '';
     this._newLink();
     this.setState({ phase: 'join', netStatus: '', netStatusKind: '' });
   };
@@ -549,18 +565,32 @@ class Component extends DCLogic {
   refJoinCode = (el) => { this.elJoinCode = el; };
   refJoinAnswer = (el) => { this.elJoinAnswer = el; if (el && this.joinAnswer) el.value = this.joinAnswer; };
 
-  onNetState(s) {
+  onNetState(s, guestIdx) {
+    if (this.myIdx !== 0) return this._onGuestNetState(s);
+    return this._onHostNetState(s, guestIdx);
+  }
+
+  _onHostNetState(s, guestIdx) {
+    const guestsNeeded = this.playerCount - 1;
     if (s === 'open') {
-      this.netMode = true;
-      if (this.myIdx === 0) {
-        const round = 1, wins = [0, 0];
-        this.net.send({ t: 'start', round, wins });
-        this.setState({ round, wins });
-        this.startRound();
-      } else {
-        this.setState({ netStatus: 'Connected! Waiting for host to start…', netStatusKind: 'ok' });
+      this.nets[guestIdx].send({ t: 'welcome', idx: guestIdx + 1, playerCount: this.playerCount });
+      if (guestIdx + 1 < guestsNeeded) {
+        this.hostGuestIdx = guestIdx + 1;
+        this._hostNextGuest();
+        return;
       }
+      this.netMode = true;
+      const round = 1, wins = this.players ? this.players.map(() => 0) : Array(this.playerCount).fill(0);
+      this.nets.forEach(n => n.send({ t: 'start', round, wins }));
+      this.setState({ round, wins });
+      this.startRound();
     } else if (s === 'failed' || s === 'disconnected' || s === 'closed') {
+      this._handleGuestDrop(guestIdx);
+    }
+  }
+
+  _onGuestNetState(s) {
+    if (s === 'failed' || s === 'disconnected' || s === 'closed') {
       if (this.netMode) {
         this.netMode = false;
         this.roundActive = false;
@@ -569,6 +599,8 @@ class Component extends DCLogic {
         this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
       }
     }
+    // 'open' for a guest is a no-op here — the guest waits for the host's
+    // 'welcome' and 'start' messages (see onMsg in Task 4).
   }
   onMsg(m) {
     if (!m || !this.players) return;
