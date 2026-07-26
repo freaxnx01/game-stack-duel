@@ -69,7 +69,7 @@ a:hover { color: #38639C; text-decoration: underline; }
               <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p1Incoming }} INCOMING</div>
             </sc-if>
           </div>
-          <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
           <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p1Hint }}</div>
         </div>
 
@@ -95,6 +95,16 @@ a:hover { color: #38639C; text-decoration: underline; }
                 </sc-for>
               </div>
             </div>
+            <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 10px; font-weight: 700; color: #8B8B85; letter-spacing: 0.08em; width: 16px">P3</div>
+                <div style="display: flex; gap: 6px">
+                  <sc-for list="{{ p3Dots }}" as="d" hint-placeholder-count="2">
+                    <div style="width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box; background: {{ d.bg }}; border: 2px solid {{ d.bd }}"></div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
           </div>
           <div style="font-size: 10px; color: #A5A59E; letter-spacing: 0.14em; text-align: center; line-height: 1.9">P — PAUSE<br>M — SOUND</div>
         </div>
@@ -105,7 +115,7 @@ a:hover { color: #38639C; text-decoration: underline; }
               <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p2Incoming }} INCOMING</div>
             </sc-if>
           </div>
-          <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
           <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p2Hint }}</div>
         </div>
 
@@ -137,6 +147,46 @@ a:hover { color: #38639C; text-decoration: underline; }
             </div>
           </div>
         </div>
+
+        <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 7px">
+            <div style="height: 16px; display: flex; justify-content: center; align-items: center">
+              <sc-if value="{{ p3IncomingShow }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p3Incoming }} INCOMING</div>
+              </sc-if>
+            </div>
+            <canvas ref="{{ refBoard3 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block; opacity: {{ p3BoardOpacity }}"></canvas>
+            <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p3Hint }}</div>
+          </div>
+          <div style="width: 132px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; padding-top: 20px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="width: 9px; height: 9px; background: #5A9E6F"></div>
+              <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em">{{ p3NameU }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">SCORE</div>
+              <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 26px; font-weight: 600">{{ p3Score }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">HOLD</div>
+              <canvas ref="{{ refHold3 }}" width="72" height="40" style="width: 72px; height: 40px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">NEXT</div>
+              <canvas ref="{{ refNext3 }}" width="72" height="124" style="width: 72px; height: 124px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px">
+              <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px">
+                <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LINES</div>
+                <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p3Lines }}</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px">
+                <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LEVEL</div>
+                <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p3Level }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
 
       </div>
 
@@ -218,6 +268,12 @@ a:hover { color: #38639C; text-decoration: underline; }
             <sc-if value="{{ showHostScreen }}" hint-placeholder-val="{{ false }}">
               <div style="display: flex; flex-direction: column; gap: 11px; width: 460px; max-width: 100%; align-items: stretch">
                 <div style="font-size: 30px; font-weight: 800; letter-spacing: 0.05em; text-align: center">HOST ONLINE</div>
+                <sc-if value="{{ showPlayerCountPicker }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 4px">
+                    <button onClick="{{ pickTwoPlayers }}" style="{{ twoPlayerBtnStyle }}">2 PLAYERS</button>
+                    <button onClick="{{ pickThreePlayers }}" style="{{ threePlayerBtnStyle }}">3 PLAYERS</button>
+                  </div>
+                </sc-if>
                 <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #8B8B85; text-align: left">1 — SEND THIS INVITE CODE TO YOUR FRIEND</div>
                 <textarea ref="{{ refHostCode }}" readOnly placeholder="Creating code…" style="width: 100%; box-sizing: border-box; height: 64px; resize: none; font-family: ui-monospace, Menlo, monospace; font-size: 10px; line-height: 1.35; padding: 8px; border: 1px solid #D8D8D1; border-radius: 3px; background: #FFFFFF; color: #1D1D1B; outline: none"></textarea>
                 <button onClick="{{ copyHost }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1; padding: 10px 18px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2">COPY INVITE CODE</button>
@@ -1263,6 +1319,8 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
+    const boardW = this.playerCount === 3 ? 230 : 300;
+    const boardH = boardW * 2;
     const n1 = String(this.props.p1Name ?? 'Player 1').toUpperCase();
     const n2 = String(this.props.p2Name ?? 'Player 2').toUpperCase();
     const names = [n1, n2];
@@ -1369,7 +1427,27 @@ class Component extends DCLogic {
       refJoinCode: this.refJoinCode, refJoinAnswer: this.refJoinAnswer,
       refBoard1: this.refBoardFns[0], refBoard2: this.refBoardFns[1],
       refHold1: this.refHoldFns[0], refHold2: this.refHoldFns[1],
-      refNext1: this.refNextFns[0], refNext2: this.refNextFns[1]
+      refNext1: this.refNextFns[0], refNext2: this.refNextFns[1],
+      p3NameU: 'PLAYER 3',
+      p3Score: s.players[2] ? s.players[2].score : 0,
+      p3Lines: s.players[2] ? s.players[2].lines : 0,
+      p3Level: s.players[2] ? s.players[2].level : 1,
+      p3IncomingShow: !!(s.players[2] && s.players[2].incoming > 0),
+      p3Incoming: '+' + (s.players[2] ? s.players[2].incoming : 0),
+      p3BoardOpacity: (s.players[2] && s.players[2].out) ? 0.35 : 1,
+      p3Dots: [0, 1].map(k => ({
+        bg: (s.wins[2] || 0) > k ? this.ACCENTS[2] : 'rgba(0,0,0,0)',
+        bd: (s.wins[2] || 0) > k ? this.ACCENTS[2] : '#CFCFC8'
+      })),
+      p3Hint: hintStr(2),
+      isThreePlayer: this.playerCount === 3,
+      boardW, boardH,
+      showPlayerCountPicker: ph === 'host' && this.hostGuestIdx === 0 && this.state.netStatus.indexOf('Connected') === -1,
+      pickTwoPlayers: () => this.chooseHostPlayerCount(2),
+      pickThreePlayers: () => this.chooseHostPlayerCount(3),
+      twoPlayerBtnStyle: btn.ghost + (this.playerCount === 2 ? '; border-color: #1D1D1B' : ''),
+      threePlayerBtnStyle: btn.ghost + (this.playerCount === 3 ? '; border-color: #1D1D1B' : ''),
+      refBoard3: this.refBoardFns[2], refHold3: this.refHoldFns[2], refNext3: this.refNextFns[2]
     };
   }
 }
