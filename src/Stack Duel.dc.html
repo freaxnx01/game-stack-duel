@@ -68,7 +68,7 @@ a:hover { color: #38639C; text-decoration: underline; }
               <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p1Incoming }} INCOMING</div>
             </sc-if>
           </div>
-          <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <canvas ref="{{ refBoard1 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block; opacity: {{ p1BoardOpacity }}"></canvas>
           <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p1Hint }}</div>
         </div>
 
@@ -94,6 +94,16 @@ a:hover { color: #38639C; text-decoration: underline; }
                 </sc-for>
               </div>
             </div>
+            <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <div style="font-size: 10px; font-weight: 700; color: #8B8B85; letter-spacing: 0.08em; width: 16px">P3</div>
+                <div style="display: flex; gap: 6px">
+                  <sc-for list="{{ p3Dots }}" as="d" hint-placeholder-count="2">
+                    <div style="width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box; background: {{ d.bg }}; border: 2px solid {{ d.bd }}"></div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
           </div>
           <div style="font-size: 10px; color: #A5A59E; letter-spacing: 0.14em; text-align: center; line-height: 1.9">P — PAUSE<br>M — SOUND</div>
         </div>
@@ -104,7 +114,7 @@ a:hover { color: #38639C; text-decoration: underline; }
               <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p2Incoming }} INCOMING</div>
             </sc-if>
           </div>
-          <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: 300px; height: 600px; background: #FFFFFF; border: 1px solid #DEDED8; display: block"></canvas>
+          <canvas ref="{{ refBoard2 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block; opacity: {{ p2BoardOpacity }}"></canvas>
           <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p2Hint }}</div>
         </div>
 
@@ -136,6 +146,46 @@ a:hover { color: #38639C; text-decoration: underline; }
             </div>
           </div>
         </div>
+
+        <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
+          <div style="display: flex; flex-direction: column; gap: 7px">
+            <div style="height: 16px; display: flex; justify-content: center; align-items: center">
+              <sc-if value="{{ p3IncomingShow }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size: 11px; font-weight: 700; color: #C75B4A; letter-spacing: 0.12em; animation: blink 0.9s ease-in-out infinite">▼ {{ p3Incoming }} INCOMING</div>
+              </sc-if>
+            </div>
+            <canvas ref="{{ refBoard3 }}" width="300" height="600" style="width: {{ boardW }}px; height: {{ boardH }}px; background: #FFFFFF; border: 1px solid #DEDED8; display: block; opacity: {{ p3BoardOpacity }}"></canvas>
+            <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p3Hint }}</div>
+          </div>
+          <div style="width: 132px; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; padding-top: 20px">
+            <div style="display: flex; align-items: center; gap: 8px">
+              <div style="width: 9px; height: 9px; background: #5A9E6F"></div>
+              <div style="font-size: 12px; font-weight: 700; letter-spacing: 0.14em">{{ p3NameU }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">SCORE</div>
+              <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 26px; font-weight: 600">{{ p3Score }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">HOLD</div>
+              <canvas ref="{{ refHold3 }}" width="72" height="40" style="width: 72px; height: 40px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 3px">
+              <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">NEXT</div>
+              <canvas ref="{{ refNext3 }}" width="72" height="124" style="width: 72px; height: 124px; background: #FFFFFF; border: 1px solid #E4E4DE; display: block"></canvas>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 12px">
+              <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px">
+                <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LINES</div>
+                <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p3Lines }}</div>
+              </div>
+              <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px">
+                <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.16em; color: #9A9A93">LEVEL</div>
+                <div style="font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size: 15px; font-weight: 600">{{ p3Level }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
 
       </div>
 
@@ -217,6 +267,12 @@ a:hover { color: #38639C; text-decoration: underline; }
             <sc-if value="{{ showHostScreen }}" hint-placeholder-val="{{ false }}">
               <div style="display: flex; flex-direction: column; gap: 11px; width: 460px; max-width: 100%; align-items: stretch">
                 <div style="font-size: 30px; font-weight: 800; letter-spacing: 0.05em; text-align: center">HOST ONLINE</div>
+                <sc-if value="{{ showPlayerCountPicker }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 4px">
+                    <button onClick="{{ pickTwoPlayers }}" style="{{ twoPlayerBtnStyle }}">2 PLAYERS</button>
+                    <button onClick="{{ pickThreePlayers }}" style="{{ threePlayerBtnStyle }}">3 PLAYERS</button>
+                  </div>
+                </sc-if>
                 <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; color: #8B8B85; text-align: left">1 — SEND THIS INVITE CODE TO YOUR FRIEND</div>
                 <textarea ref="{{ refHostCode }}" readOnly placeholder="Creating code…" style="width: 100%; box-sizing: border-box; height: 64px; resize: none; font-family: ui-monospace, Menlo, monospace; font-size: 10px; line-height: 1.35; padding: 8px; border: 1px solid #D8D8D1; border-radius: 3px; background: #FFFFFF; color: #1D1D1B; outline: none"></textarea>
                 <button onClick="{{ copyHost }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1; padding: 10px 18px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2">COPY INVITE CODE</button>
@@ -350,8 +406,10 @@ class Component extends DCLogic {
   state = {
     phase: 'menu', round: 1, wins: [0, 0], lastWinner: 0, countdown: '3', muted: false,
     keyListen: null, netStatus: '', netStatusKind: '',
-    p1: { score: 0, lines: 0, level: 1, incoming: 0 },
-    p2: { score: 0, lines: 0, level: 1, incoming: 0 }
+    players: [
+      { score: 0, lines: 0, level: 1, incoming: 0, out: false },
+      { score: 0, lines: 0, level: 1, incoming: 0, out: false }
+    ]
   };
 
   ACTLIST = [['left', 'MOVE LEFT'], ['right', 'MOVE RIGHT'], ['rot', 'ROTATE'], ['soft', 'SOFT DROP'], ['hard', 'HARD DROP'], ['hold', 'HOLD']];
@@ -365,22 +423,21 @@ class Component extends DCLogic {
   DAS = 150; ARR = 45; SOFT = 90; LOCK = 480; CLEARMS = 150; MAXRESET = 15;
   GARB = [0, 0, 1, 2, 4];
   COLORS = { I: '#5FA8CF', J: '#7E8CD8', L: '#DFA35B', O: '#D9BE58', S: '#7FBB8C', T: '#B48CD3', Z: '#DB8578', G: '#C6C6BF' };
-  ACCENTS = ['#4E7FBE', '#C97A3D'];
+  ACCENTS = ['#4E7FBE', '#C97A3D', '#5A9E6F'];
+  playerCount = 2;
+  cvB = []; cvH = []; cvN = [];
+  refBoardFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvB, i, 300, 600));
+  refHoldFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvH, i, 72, 40));
+  refNextFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvN, i, 72, 124));
 
-  bindCanvas(key, w, h) {
+  makeCanvasRef(arr, i, w, h) {
     return (el) => {
       if (!el) return;
       const dpr = window.devicePixelRatio || 1;
       el.width = w * dpr; el.height = h * dpr; el.__dpr = dpr;
-      this[key] = el;
+      arr[i] = el;
     };
   }
-  refBoard1 = this.bindCanvas('cvB1', 300, 600);
-  refBoard2 = this.bindCanvas('cvB2', 300, 600);
-  refHold1 = this.bindCanvas('cvH1', 72, 40);
-  refHold2 = this.bindCanvas('cvH2', 72, 40);
-  refNext1 = this.bindCanvas('cvN1', 72, 124);
-  refNext2 = this.bindCanvas('cvN2', 72, 124);
 
   componentDidMount() {
     this.buildRots();
@@ -477,27 +534,44 @@ class Component extends DCLogic {
     if (this.net) { try { this.net.close(); } catch (e) {} }
     this.net = new NetLink((m) => this.onMsg(m), (s) => this.onNetState(s));
   }
-  closeNet() { if (this.net) { try { this.net.close(); } catch (e) {} this.net = null; } this.netMode = false; }
+  closeNet() {
+    (this.nets || []).forEach(n => { try { n.close(); } catch (e) {} });
+    this.nets = [];
+    this.droppedGuests = new Set();
+    if (this.net) { try { this.net.close(); } catch (e) {} this.net = null; }
+    this.netMode = false;
+  }
   _copy(text) {
     if (!text) return;
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text); } catch (e) {}
   }
 
   openControls = () => { this.ensureAC(); this.setState({ phase: 'controls', keyListen: null }); };
+  chooseHostPlayerCount = (n) => { this.playerCount = n; this.setState({}); };
   openHost = () => {
     this.ensureAC();
-    this.myIdx = 0; this.hostCode = ''; this.joinAnswer = '';
-    this._newLink();
+    this.myIdx = 0; this.nets = []; this.hostGuestIdx = 0; this.droppedGuests = new Set();
+    this.hostCode = ''; this.joinAnswer = '';
     this.setState({ phase: 'host', netStatus: 'Creating invite code…', netStatusKind: '' });
-    this.net.host().then(code => {
+    this._hostNextGuest();
+  };
+
+  _hostNextGuest() {
+    const i = this.hostGuestIdx;
+    const link = new NetLink((m) => this.onMsg(m, i), (s) => this.onNetState(s, i));
+    this.nets[i] = link;
+    this.net = link; // the currently-active link, for the host/join screen refs below
+    link.host().then(code => {
       this.hostCode = code;
       if (this.elHostCode) this.elHostCode.value = code;
-      this.setState({ netStatus: 'Waiting for the reply code…', netStatusKind: '' });
+      const label = this.playerCount === 3 ? 'guest ' + (i + 1) + ' of 2' : 'your friend';
+      if (this.elHostAnswer) this.elHostAnswer.value = '';
+      this.setState({ netStatus: 'Waiting for the reply code from ' + label + '…', netStatusKind: '' });
     }).catch(e => this.setState({ netStatus: 'Could not create code: ' + e.message, netStatusKind: 'err' }));
-  };
+  }
   openJoin = () => {
     this.ensureAC();
-    this.myIdx = 1; this.hostCode = ''; this.joinAnswer = '';
+    this.myIdx = null; this.hostCode = ''; this.joinAnswer = ''; this.droppedGuests = new Set();
     this._newLink();
     this.setState({ phase: 'join', netStatus: '', netStatusKind: '' });
   };
@@ -523,6 +597,7 @@ class Component extends DCLogic {
     this.closeNet();
     this.clearTimers();
     this.roundActive = false;
+    this.playerCount = 2;
     this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '' });
   };
 
@@ -531,34 +606,61 @@ class Component extends DCLogic {
   refJoinCode = (el) => { this.elJoinCode = el; };
   refJoinAnswer = (el) => { this.elJoinAnswer = el; if (el && this.joinAnswer) el.value = this.joinAnswer; };
 
-  onNetState(s) {
+  onNetState(s, guestIdx) {
+    if (this.myIdx !== 0) return this._onGuestNetState(s);
+    return this._onHostNetState(s, guestIdx);
+  }
+
+  _onHostNetState(s, guestIdx) {
+    const guestsNeeded = this.playerCount - 1;
+    if (s === 'open') {
+      this.nets[guestIdx].send({ t: 'welcome', idx: guestIdx + 1, playerCount: this.playerCount });
+      if (guestIdx + 1 < guestsNeeded) {
+        this.hostGuestIdx = guestIdx + 1;
+        this._hostNextGuest();
+        return;
+      }
+      this.netMode = true;
+      const round = 1, wins = Array(this.playerCount).fill(0);
+      this.nets.forEach(n => n.send({ t: 'start', round, wins, dropped: [...this.droppedGuests] }));
+      this.setState({ round, wins });
+      this.startRound();
+    } else if (s === 'failed' || s === 'disconnected' || s === 'closed') {
+      this._handleGuestDrop(guestIdx);
+    }
+  }
+
+  _onGuestNetState(s) {
     if (s === 'open') {
       this.netMode = true;
-      if (this.myIdx === 0) {
-        const round = 1, wins = [0, 0];
-        this.net.send({ t: 'start', round, wins });
-        this.setState({ round, wins });
-        this.startRound();
-      } else {
-        this.setState({ netStatus: 'Connected! Waiting for host to start…', netStatusKind: 'ok' });
-      }
+      this.setState({ netStatus: 'Connected! Waiting for host to start…', netStatusKind: 'ok' });
     } else if (s === 'failed' || s === 'disconnected' || s === 'closed') {
       if (this.netMode) {
         this.netMode = false;
         this.roundActive = false;
         this.clearTimers();
         this.closeNet();
+        this.playerCount = 2;
         this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
       }
     }
   }
-  onMsg(m) {
-    if (!m || !this.players) return;
+  onMsg(m, fromNetIdx) {
+    if (!m) return;
+    if (m.t === 'welcome') {
+      this.myIdx = m.idx; this.playerCount = m.playerCount;
+      return;
+    }
     if (m.t === 'start') {
+      this.droppedGuests = new Set(m.dropped || []);
       this.setState({ round: m.round, wins: m.wins });
       this.startRound();
-    } else if (m.t === 'b') {
-      const rp = this.players[1 - this.myIdx];
+      return;
+    }
+    if (!this.players) return;
+    if (m.t === 'b') {
+      const rp = this.players[m.pi];
+      if (!rp) return;
       rp.grid = this.unpackGrid(m.g);
       rp.cur = m.c ? { type: m.c.t, rot: m.c.r, x: m.c.x, y: m.c.y } : null;
       rp.hold = m.h; rp.holdUsed = m.hu;
@@ -566,6 +668,20 @@ class Component extends DCLogic {
       rp.score = m.s; rp.lines = m.l; rp.level = m.lv; rp.pending = m.pd;
       rp.clearing = m.cl ? { rows: m.cl, t: 0 } : null;
       this.hudDirty = true;
+      if (this.myIdx === 0) this._relayToOtherGuests(fromNetIdx, m);
+    } else if (m.t === 'atk') {
+      if (this.myIdx !== 0) return; // only the host resolves targets
+      const targetIdx = this.chooseTarget(m.pi);
+      if (targetIdx < 0) return;
+      if (targetIdx === 0) {
+        const me = this.players[0];
+        for (let i = 0; i < m.rows; i++) me.holes.push(m.hole);
+        me.pending = me.holes.length;
+        this.hudDirty = true;
+        this.snd('warn');
+      } else {
+        this.nets[targetIdx - 1].send({ t: 'g', rows: m.rows, hole: m.hole });
+      }
     } else if (m.t === 'g') {
       const me = this.players[this.myIdx];
       for (let i = 0; i < m.rows; i++) me.holes.push(m.hole);
@@ -573,29 +689,80 @@ class Component extends DCLogic {
       this.hudDirty = true;
       this.snd('warn');
     } else if (m.t === 'over') {
-      this._endRound(this.myIdx);
+      if (this.myIdx === 0) {
+        this.markOut(m.pi);
+        this._relayToOtherGuests(fromNetIdx, m);
+      } else {
+        this.markOut(m.pi);
+      }
+    }
+  }
+
+  _relayToOtherGuests(fromNetIdx, msg) {
+    this.nets.forEach((n, i) => { if (i !== fromNetIdx && n) n.send(msg); });
+  }
+
+  _handleGuestDrop(guestIdx) {
+    // Record the drop permanently for the rest of this hosting session, even if
+    // it happens before netMode is on (e.g. mid sequential-connect) — this slot
+    // must never again be treated as a live player in a future round.
+    if (this.droppedGuests) this.droppedGuests.add(guestIdx);
+    if (!this.netMode) {
+      this.setState({ netStatus: 'Connection lost — try generating a new invite code.', netStatusKind: 'err' });
+      return;
+    }
+    if (this.playerCount === 2) {
+      // Preserve exact 2-player behavior: any drop ends the match.
+      this.netMode = false;
+      this.roundActive = false;
+      this.clearTimers();
+      this.closeNet();
+      this.playerCount = 2;
+      this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
+      return;
+    }
+    const playerIdx = guestIdx + 1;
+    // Count players who are still alive THIS round and are not permanently
+    // dropped guests — if fewer than 2 remain, the match cannot continue.
+    const remaining = [];
+    for (let i = 0; i < this.playerAlive.length; i++) {
+      if (this.playerAlive[i] && (i === 0 || !this.droppedGuests.has(i - 1))) remaining.push(i);
+    }
+    if (this.roundActive && remaining.length >= 2) {
+      this.markOut(playerIdx);
+      this._relayToOtherGuests(guestIdx, { t: 'over', pi: playerIdx });
+      this.hudDirty = true;
+    } else {
+      this.netMode = false;
+      this.roundActive = false;
+      this.clearTimers();
+      this.closeNet();
+      this.playerCount = 2;
+      this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
     }
   }
   packGrid(grid) { return grid.map(row => row.map(v => v || '.').join('')).join('|'); }
   unpackGrid(str) { return str.split('|').map(r => r.split('').map(ch => ch === '.' ? null : ch)); }
   sendBoard() {
     const p = this.players[this.myIdx];
-    this.net.send({
-      t: 'b',
+    const msg = {
+      t: 'b', pi: this.myIdx,
       g: this.packGrid(p.grid),
       c: p.cur ? { t: p.cur.type, r: p.cur.rot, x: p.cur.x, y: p.cur.y } : null,
       h: p.hold, hu: p.holdUsed,
       n: [p.queue[0] || null, p.queue[1] || null, p.queue[2] || null],
       s: p.score, l: p.lines, lv: p.level, pd: p.pending,
       cl: p.clearing ? p.clearing.rows : null
-    });
+    };
+    if (this.myIdx === 0) this.nets.forEach(n => n.send(msg));
+    else this.net.send(msg);
   }
   netAdvance() {
     const s = this.state;
     let round = s.round, wins = s.wins;
     if (s.phase === 'roundover') { round = round + 1; }
-    else { round = 1; wins = [0, 0]; }
-    if (this.net) this.net.send({ t: 'start', round, wins });
+    else { round = 1; wins = this.players.map(() => 0); }
+    this.nets.forEach(n => n.send({ t: 'start', round, wins, dropped: [...this.droppedGuests] }));
     this.setState({ round, wins });
     this.startRound();
   }
@@ -627,7 +794,7 @@ class Component extends DCLogic {
       idx, grid: Array.from({ length: this.ROWS }, () => Array(this.COLS).fill(null)),
       bag: [], queue: [], cur: null, hold: null, holdUsed: false,
       score: 0, lines: 0, level: this.startLevel(), gravAcc: 0, soft: false,
-      das: null, lockT: 0, lockResets: 0, clearing: null, pending: 0, holes: []
+      das: null, lockT: 0, lockResets: 0, clearing: null, pending: 0, holes: [], out: false
     };
   }
 
@@ -748,6 +915,32 @@ class Component extends DCLogic {
     }
   }
 
+  chooseTarget(attackerIdx) {
+    const candidates = [];
+    for (let i = 0; i < this.playerAlive.length; i++) {
+      if (i !== attackerIdx && this.playerAlive[i]) candidates.push(i);
+    }
+    if (!candidates.length) return -1;
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }
+
+  sendAttack(attackerIdx, rows, hole) {
+    if (this.myIdx === 0) {
+      const targetIdx = this.chooseTarget(attackerIdx);
+      if (targetIdx < 0) return;
+      if (targetIdx === 0) {
+        const me = this.players[0];
+        for (let i = 0; i < rows; i++) me.holes.push(hole);
+        me.pending = me.holes.length;
+        this.hudDirty = true;
+      } else {
+        this.nets[targetIdx - 1].send({ t: 'g', rows, hole });
+      }
+    } else {
+      this.net.send({ t: 'atk', pi: attackerIdx, rows, hole });
+    }
+  }
+
   finishClear(p) {
     const rows = p.clearing.rows; p.clearing = null;
     p.grid = p.grid.filter((_, r) => rows.indexOf(r) === -1);
@@ -764,10 +957,11 @@ class Component extends DCLogic {
     if (atk > 0) {
       if (this.netMode) {
         const hole = Math.floor(Math.random() * this.COLS);
-        if (this.net) this.net.send({ t: 'g', rows: atk, hole });
+        this.sendAttack(p.idx, atk, hole);
         this.snd('warn');
       } else {
-        this.players[1 - p.idx].pending += atk;
+        const targetIdx = this.chooseTarget(p.idx);
+        if (targetIdx >= 0) this.players[targetIdx].pending += atk;
         this.snd('warn');
       }
     }
@@ -802,15 +996,26 @@ class Component extends DCLogic {
 
   topOut(loser) {
     if (!this.roundActive) return;
-    const w = 1 - loser.idx;
-    if (this.netMode && this.net) this.net.send({ t: 'over' });
-    this._endRound(w);
+    this.markOut(loser.idx);
+    if (!this.netMode) return;
+    const msg = { t: 'over', pi: loser.idx };
+    if (this.myIdx === 0) this.nets.forEach(n => n.send(msg));
+    else if (this.net) this.net.send(msg);
+  }
+
+  markOut(idx) {
+    if (!this.playerAlive[idx]) return;
+    this.playerAlive[idx] = false;
+    if (this.players[idx]) this.players[idx].out = true;
+    const survivors = [];
+    for (let i = 0; i < this.playerAlive.length; i++) if (this.playerAlive[i]) survivors.push(i);
+    if (survivors.length === 1) this._endRound(survivors[0]);
   }
 
   _endRound(winnerIdx) {
     if (!this.roundActive) return;
     this.roundActive = false;
-    const wins = [this.state.wins[0], this.state.wins[1]];
+    const wins = this.state.wins.slice();
     wins[winnerIdx]++;
     this.snd('lose');
     this.timers.push(setTimeout(() => this.snd(wins[winnerIdx] >= 2 ? 'matchwin' : 'win'), 380));
@@ -821,8 +1026,29 @@ class Component extends DCLogic {
 
   startRound() {
     this.clearTimers();
-    this.players = [this.makePlayer(0), this.makePlayer(1)];
+    this.players = Array.from({ length: this.playerCount }, (_, i) => this.makePlayer(i));
     this.players.forEach(p => this.fillQueue(p));
+    this.playerAlive = this.players.map(() => true);
+    // A permanently-dropped guest slot must never be revived as "alive" in a
+    // new round or rematch — mark it dead again immediately.
+    if (this.droppedGuests) this.droppedGuests.forEach(i => {
+      const idx = i + 1;
+      if (idx < this.playerAlive.length) { this.playerAlive[idx] = false; this.players[idx].out = true; }
+    });
+    if (this.netMode) {
+      const aliveCount = this.playerAlive.filter(Boolean).length;
+      if (aliveCount <= 1) {
+        // Fewer than 2 real players remain — the match cannot continue or
+        // restart; end it cleanly instead of starting a round already over.
+        this.netMode = false;
+        this.roundActive = false;
+        this.clearTimers();
+        this.closeNet();
+        this.playerCount = 2;
+        this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
+        return;
+      }
+    }
     this.roundActive = false;
     this.syncHud();
     this.setState({ phase: 'countdown', countdown: '3' });
@@ -849,9 +1075,9 @@ class Component extends DCLogic {
       if (ph === 'roundover' || ph === 'matchover') this.netAdvance();
       return;
     }
-    if (ph === 'menu') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
+    if (ph === 'menu') { this.setState({ round: 1, wins: this.players.map(() => 0) }); this.startRound(); }
     else if (ph === 'roundover') { this.setState({ round: this.state.round + 1 }); this.startRound(); }
-    else if (ph === 'matchover') { this.setState({ round: 1, wins: [0, 0] }); this.startRound(); }
+    else if (ph === 'matchover') { this.setState({ round: 1, wins: this.players.map(() => 0) }); this.startRound(); }
   };
 
   toggleMute = () => { this.ensureAC(); this.setState(s => ({ muted: !s.muted })); };
@@ -886,8 +1112,9 @@ class Component extends DCLogic {
       return;
     }
     if (ph !== 'playing' || !this.roundActive) return;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue; // net: only local player's keys
+      if (this.playerAlive && !this.playerAlive[i]) continue;
       const act = this.netMode ? this.NETMAP[code] : this.maps[i][code];
       if (!act) continue;
       this.doAction(this.players[i], act);
@@ -908,8 +1135,9 @@ class Component extends DCLogic {
 
   keyUp(e) {
     if (!this.players) return;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue;
+      if (this.playerAlive && !this.playerAlive[i]) continue;
       const act = this.netMode ? this.NETMAP[e.code] : this.maps[i][e.code];
       if (!act) continue;
       const p = this.players[i];
@@ -924,6 +1152,7 @@ class Component extends DCLogic {
 
   update(p, dt) {
     if (!this.roundActive) return;
+    if (!this.playerAlive[p.idx]) return;
     if (p.clearing) {
       p.clearing.t += dt;
       if (p.clearing.t >= this.CLEARMS) this.finishClear(p);
@@ -979,20 +1208,20 @@ class Component extends DCLogic {
   syncHud() {
     this.hudDirty = false;
     if (!this.players) return;
-    const snap = p => ({ score: p.score, lines: p.lines, level: p.level, incoming: p.pending });
-    this.setState({ p1: snap(this.players[0]), p2: snap(this.players[1]) });
+    const snap = p => ({ score: p.score, lines: p.lines, level: p.level, incoming: p.pending, out: !!p.out });
+    this.setState({ players: this.players.map(snap) });
   }
 
   drawAll() {
     if (!this.players) return;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < this.players.length; i++) {
       this.drawBoard(this.players[i]);
       this.drawPreviews(this.players[i]);
     }
   }
 
   drawBoard(p) {
-    const cv = p.idx === 0 ? this.cvB1 : this.cvB2;
+    const cv = this.cvB[p.idx];
     if (!cv) return;
     const g = cv.getContext('2d');
     const dpr = cv.__dpr || 1;
@@ -1050,8 +1279,8 @@ class Component extends DCLogic {
   }
 
   drawPreviews(p) {
-    const hv = p.idx === 0 ? this.cvH1 : this.cvH2;
-    const nv = p.idx === 0 ? this.cvN1 : this.cvN2;
+    const hv = this.cvH[p.idx];
+    const nv = this.cvN[p.idx];
     if (hv) {
       const g = hv.getContext('2d'), dpr = hv.__dpr || 1;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1118,9 +1347,12 @@ class Component extends DCLogic {
 
   renderVals() {
     const s = this.state;
+    const boardW = this.playerCount === 3 ? 230 : 300;
+    const boardH = boardW * 2;
     const n1 = String(this.props.p1Name ?? 'Player 1').toUpperCase();
     const n2 = String(this.props.p2Name ?? 'Player 2').toUpperCase();
-    const names = [n1, n2];
+    const n3 = 'PLAYER 3';
+    const names = [n1, n2, n3];
     const ph = s.phase;
     const A = this.ACCENTS;
     const dots = (i) => [0, 1].map(k => ({
@@ -1128,7 +1360,7 @@ class Component extends DCLogic {
       bd: s.wins[i] > k ? A[i] : '#CFCFC8'
     }));
     let kicker = '', title = '', sub = '', button = '';
-    const netTag = this.netMode ? 'ONLINE · YOU ARE ' + (this.myIdx === 0 ? n1 : n2) + '  ·  ' : '';
+    const netTag = this.netMode ? 'ONLINE · YOU ARE ' + names[this.myIdx] + '  ·  ' : '';
     if (ph === 'menu') {
       kicker = 'TWO PLAYER · FIRST TO 2 ROUNDS';
       title = 'STACK DUEL';
@@ -1138,12 +1370,16 @@ class Component extends DCLogic {
     } else if (ph === 'roundover') {
       kicker = netTag + 'ROUND ' + s.round;
       title = names[s.lastWinner] + ' TAKES THE ROUND';
-      sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
+      sub = this.playerCount === 3
+        ? n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + ' — ' + s.wins[2] + '  ' + n3
+        : n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
       button = 'NEXT ROUND';
     } else if (ph === 'matchover') {
       kicker = netTag + 'MATCH OVER';
       title = names[s.lastWinner] + ' WINS THE MATCH';
-      sub = n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
+      sub = this.playerCount === 3
+        ? n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + ' — ' + s.wins[2] + '  ' + n3
+        : n1 + '  ' + s.wins[0] + ' — ' + s.wins[1] + '  ' + n2;
       button = 'REMATCH';
     } else if (ph === 'paused') {
       kicker = 'ROUND ' + s.round;
@@ -1187,10 +1423,10 @@ class Component extends DCLogic {
 
     return {
       p1NameU: n1, p2NameU: n2,
-      p1Score: s.p1.score, p1Lines: s.p1.lines, p1Level: s.p1.level,
-      p2Score: s.p2.score, p2Lines: s.p2.lines, p2Level: s.p2.level,
-      p1IncomingShow: s.p1.incoming > 0, p1Incoming: '+' + s.p1.incoming,
-      p2IncomingShow: s.p2.incoming > 0, p2Incoming: '+' + s.p2.incoming,
+      p1Score: s.players[0].score, p1Lines: s.players[0].lines, p1Level: s.players[0].level,
+      p2Score: s.players[1].score, p2Lines: s.players[1].lines, p2Level: s.players[1].level,
+      p1IncomingShow: s.players[0].incoming > 0, p1Incoming: '+' + s.players[0].incoming,
+      p2IncomingShow: s.players[1].incoming > 0, p2Incoming: '+' + s.players[1].incoming,
       roundNum: s.round,
       p1Dots: dots(0), p2Dots: dots(1),
       p1Hint: hintStr(0), p2Hint: hintStr(1),
@@ -1222,9 +1458,28 @@ class Component extends DCLogic {
       backToMenu: this.backToMenu, resetKeys: this.resetKeys,
       refHostCode: this.refHostCode, refHostAnswer: this.refHostAnswer,
       refJoinCode: this.refJoinCode, refJoinAnswer: this.refJoinAnswer,
-      refBoard1: this.refBoard1, refBoard2: this.refBoard2,
-      refHold1: this.refHold1, refHold2: this.refHold2,
-      refNext1: this.refNext1, refNext2: this.refNext2
+      refBoard1: this.refBoardFns[0], refBoard2: this.refBoardFns[1],
+      refHold1: this.refHoldFns[0], refHold2: this.refHoldFns[1],
+      refNext1: this.refNextFns[0], refNext2: this.refNextFns[1],
+      p1BoardOpacity: (s.players[0] && s.players[0].out) ? 0.35 : 1,
+      p2BoardOpacity: (s.players[1] && s.players[1].out) ? 0.35 : 1,
+      p3NameU: n3,
+      p3Score: s.players[2] ? s.players[2].score : 0,
+      p3Lines: s.players[2] ? s.players[2].lines : 0,
+      p3Level: s.players[2] ? s.players[2].level : 1,
+      p3IncomingShow: !!(s.players[2] && s.players[2].incoming > 0),
+      p3Incoming: '+' + (s.players[2] ? s.players[2].incoming : 0),
+      p3BoardOpacity: (s.players[2] && s.players[2].out) ? 0.35 : 1,
+      p3Dots: dots(2),
+      p3Hint: hintStr(2),
+      isThreePlayer: this.playerCount === 3,
+      boardW, boardH,
+      showPlayerCountPicker: ph === 'host' && this.hostGuestIdx === 0 && this.state.netStatus.indexOf('Connected') === -1,
+      pickTwoPlayers: () => this.chooseHostPlayerCount(2),
+      pickThreePlayers: () => this.chooseHostPlayerCount(3),
+      twoPlayerBtnStyle: btn.ghost + (this.playerCount === 2 ? '; border-color: #1D1D1B' : ''),
+      threePlayerBtnStyle: btn.ghost + (this.playerCount === 3 ? '; border-color: #1D1D1B' : ''),
+      refBoard3: this.refBoardFns[2], refHold3: this.refHoldFns[2], refNext3: this.refNextFns[2]
     };
   }
 }

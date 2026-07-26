@@ -6,6 +6,10 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+### Added
+
+- 3-player P2P mode: host-relay star topology, sequential invite-code exchange for two guests, random-opponent garbage targeting, and last-player-standing round wins.
+
 ## [0.1.0] - 2026-07-18
 
 ### Added
