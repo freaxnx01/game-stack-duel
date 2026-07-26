@@ -602,8 +602,8 @@ class Component extends DCLogic {
     // 'open' for a guest is a no-op here — the guest waits for the host's
     // 'welcome' and 'start' messages (see onMsg in Task 4).
   }
-  onMsg(m) {
-    if (!m || !this.players) return;
+  onMsg(m, fromNetIdx) {
+    if (!m) return;
     if (m.t === 'welcome') {
       this.myIdx = m.idx; this.playerCount = m.playerCount;
       return;
@@ -611,8 +611,12 @@ class Component extends DCLogic {
     if (m.t === 'start') {
       this.setState({ round: m.round, wins: m.wins });
       this.startRound();
-    } else if (m.t === 'b') {
-      const rp = this.players[1 - this.myIdx];
+      return;
+    }
+    if (!this.players) return;
+    if (m.t === 'b') {
+      const rp = this.players[m.pi];
+      if (!rp) return;
       rp.grid = this.unpackGrid(m.g);
       rp.cur = m.c ? { type: m.c.t, rot: m.c.r, x: m.c.x, y: m.c.y } : null;
       rp.hold = m.h; rp.holdUsed = m.hu;
@@ -620,6 +624,20 @@ class Component extends DCLogic {
       rp.score = m.s; rp.lines = m.l; rp.level = m.lv; rp.pending = m.pd;
       rp.clearing = m.cl ? { rows: m.cl, t: 0 } : null;
       this.hudDirty = true;
+      if (this.myIdx === 0) this._relayToOtherGuests(fromNetIdx, m);
+    } else if (m.t === 'atk') {
+      if (this.myIdx !== 0) return; // only the host resolves targets
+      const targetIdx = this.chooseTarget(m.pi);
+      if (targetIdx < 0) return;
+      if (targetIdx === 0) {
+        const me = this.players[0];
+        for (let i = 0; i < m.rows; i++) me.holes.push(m.hole);
+        me.pending = me.holes.length;
+        this.hudDirty = true;
+      } else {
+        this.nets[targetIdx - 1].send({ t: 'g', rows: m.rows, hole: m.hole });
+      }
+      this.snd('warn');
     } else if (m.t === 'g') {
       const me = this.players[this.myIdx];
       for (let i = 0; i < m.rows; i++) me.holes.push(m.hole);
@@ -627,29 +645,64 @@ class Component extends DCLogic {
       this.hudDirty = true;
       this.snd('warn');
     } else if (m.t === 'over') {
-      this._endRound(this.myIdx);
+      if (this.myIdx === 0) {
+        this.markOut(m.pi);
+        this._relayToOtherGuests(fromNetIdx, m);
+      } else {
+        this.markOut(m.pi);
+      }
+    }
+  }
+
+  _relayToOtherGuests(fromNetIdx, msg) {
+    this.nets.forEach((n, i) => { if (i !== fromNetIdx && n) n.send(msg); });
+  }
+
+  _handleGuestDrop(guestIdx) {
+    if (this.playerCount === 2) {
+      // Preserve exact 2-player behavior: any drop ends the match.
+      this.netMode = false;
+      this.roundActive = false;
+      this.clearTimers();
+      this.closeNet();
+      this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
+      return;
+    }
+    const playerIdx = guestIdx + 1;
+    if (this.roundActive) {
+      this.markOut(playerIdx);
+      this._relayToOtherGuests(guestIdx, { t: 'over', pi: playerIdx });
+      this.hudDirty = true;
+    } else {
+      this.netMode = false;
+      this.roundActive = false;
+      this.clearTimers();
+      this.closeNet();
+      this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
     }
   }
   packGrid(grid) { return grid.map(row => row.map(v => v || '.').join('')).join('|'); }
   unpackGrid(str) { return str.split('|').map(r => r.split('').map(ch => ch === '.' ? null : ch)); }
   sendBoard() {
     const p = this.players[this.myIdx];
-    this.net.send({
-      t: 'b',
+    const msg = {
+      t: 'b', pi: this.myIdx,
       g: this.packGrid(p.grid),
       c: p.cur ? { t: p.cur.type, r: p.cur.rot, x: p.cur.x, y: p.cur.y } : null,
       h: p.hold, hu: p.holdUsed,
       n: [p.queue[0] || null, p.queue[1] || null, p.queue[2] || null],
       s: p.score, l: p.lines, lv: p.level, pd: p.pending,
       cl: p.clearing ? p.clearing.rows : null
-    });
+    };
+    if (this.myIdx === 0) this.nets.forEach(n => n.send(msg));
+    else this.net.send(msg);
   }
   netAdvance() {
     const s = this.state;
     let round = s.round, wins = s.wins;
     if (s.phase === 'roundover') { round = round + 1; }
-    else { round = 1; wins = [0, 0]; }
-    if (this.net) this.net.send({ t: 'start', round, wins });
+    else { round = 1; wins = this.players.map(() => 0); }
+    this.nets.forEach(n => n.send({ t: 'start', round, wins }));
     this.setState({ round, wins });
     this.startRound();
   }
@@ -812,8 +865,20 @@ class Component extends DCLogic {
   }
 
   sendAttack(attackerIdx, rows, hole) {
-    // Replaced in Task 4 with host-relay logic; hotseat mode never reaches here.
-    if (this.net) this.net.send({ t: 'atk', pi: attackerIdx, rows, hole });
+    if (this.myIdx === 0) {
+      const targetIdx = this.chooseTarget(attackerIdx);
+      if (targetIdx < 0) return;
+      if (targetIdx === 0) {
+        const me = this.players[0];
+        for (let i = 0; i < rows; i++) me.holes.push(hole);
+        me.pending = me.holes.length;
+        this.hudDirty = true;
+      } else {
+        this.nets[targetIdx - 1].send({ t: 'g', rows, hole });
+      }
+    } else {
+      this.net.send({ t: 'atk', pi: attackerIdx, rows, hole });
+    }
   }
 
   finishClear(p) {
