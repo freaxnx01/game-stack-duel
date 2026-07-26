@@ -634,10 +634,10 @@ class Component extends DCLogic {
         for (let i = 0; i < m.rows; i++) me.holes.push(m.hole);
         me.pending = me.holes.length;
         this.hudDirty = true;
+        this.snd('warn');
       } else {
         this.nets[targetIdx - 1].send({ t: 'g', rows: m.rows, hole: m.hole });
       }
-      this.snd('warn');
     } else if (m.t === 'g') {
       const me = this.players[this.myIdx];
       for (let i = 0; i < m.rows; i++) me.holes.push(m.hole);
