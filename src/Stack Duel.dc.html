@@ -537,6 +537,7 @@ class Component extends DCLogic {
   closeNet() {
     (this.nets || []).forEach(n => { try { n.close(); } catch (e) {} });
     this.nets = [];
+    this.droppedGuests = new Set();
     if (this.net) { try { this.net.close(); } catch (e) {} this.net = null; }
     this.netMode = false;
   }
@@ -570,7 +571,7 @@ class Component extends DCLogic {
   }
   openJoin = () => {
     this.ensureAC();
-    this.myIdx = null; this.hostCode = ''; this.joinAnswer = '';
+    this.myIdx = null; this.hostCode = ''; this.joinAnswer = ''; this.droppedGuests = new Set();
     this._newLink();
     this.setState({ phase: 'join', netStatus: '', netStatusKind: '' });
   };
@@ -1029,7 +1030,10 @@ class Component extends DCLogic {
     this.playerAlive = this.players.map(() => true);
     // A permanently-dropped guest slot must never be revived as "alive" in a
     // new round or rematch — mark it dead again immediately.
-    if (this.droppedGuests) this.droppedGuests.forEach(i => { const idx = i + 1; if (idx < this.playerAlive.length) this.playerAlive[idx] = false; });
+    if (this.droppedGuests) this.droppedGuests.forEach(i => {
+      const idx = i + 1;
+      if (idx < this.playerAlive.length) { this.playerAlive[idx] = false; this.players[idx].out = true; }
+    });
     if (this.netMode) {
       const aliveCount = this.playerAlive.filter(Boolean).length;
       if (aliveCount <= 1) {
