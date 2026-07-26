@@ -549,7 +549,7 @@ class Component extends DCLogic {
   chooseHostPlayerCount = (n) => { this.playerCount = n; this.setState({}); };
   openHost = () => {
     this.ensureAC();
-    this.myIdx = 0; this.nets = []; this.hostGuestIdx = 0;
+    this.myIdx = 0; this.nets = []; this.hostGuestIdx = 0; this.droppedGuests = new Set();
     this.hostCode = ''; this.joinAnswer = '';
     this.setState({ phase: 'host', netStatus: 'Creating invite code…', netStatusKind: '' });
     this._hostNextGuest();
@@ -701,6 +701,10 @@ class Component extends DCLogic {
   }
 
   _handleGuestDrop(guestIdx) {
+    // Record the drop permanently for the rest of this hosting session, even if
+    // it happens before netMode is on (e.g. mid sequential-connect) — this slot
+    // must never again be treated as a live player in a future round.
+    if (this.droppedGuests) this.droppedGuests.add(guestIdx);
     if (!this.netMode) {
       this.setState({ netStatus: 'Connection lost — try generating a new invite code.', netStatusKind: 'err' });
       return;
@@ -716,7 +720,13 @@ class Component extends DCLogic {
       return;
     }
     const playerIdx = guestIdx + 1;
-    if (this.roundActive) {
+    // Count players who are still alive THIS round and are not permanently
+    // dropped guests — if fewer than 2 remain, the match cannot continue.
+    const remaining = [];
+    for (let i = 0; i < this.playerAlive.length; i++) {
+      if (this.playerAlive[i] && (i === 0 || !this.droppedGuests.has(i - 1))) remaining.push(i);
+    }
+    if (this.roundActive && remaining.length >= 2) {
       this.markOut(playerIdx);
       this._relayToOtherGuests(guestIdx, { t: 'over', pi: playerIdx });
       this.hudDirty = true;
@@ -1017,6 +1027,23 @@ class Component extends DCLogic {
     this.players = Array.from({ length: this.playerCount }, (_, i) => this.makePlayer(i));
     this.players.forEach(p => this.fillQueue(p));
     this.playerAlive = this.players.map(() => true);
+    // A permanently-dropped guest slot must never be revived as "alive" in a
+    // new round or rematch — mark it dead again immediately.
+    if (this.droppedGuests) this.droppedGuests.forEach(i => { const idx = i + 1; if (idx < this.playerAlive.length) this.playerAlive[idx] = false; });
+    if (this.netMode) {
+      const aliveCount = this.playerAlive.filter(Boolean).length;
+      if (aliveCount <= 1) {
+        // Fewer than 2 real players remain — the match cannot continue or
+        // restart; end it cleanly instead of starting a round already over.
+        this.netMode = false;
+        this.roundActive = false;
+        this.clearTimers();
+        this.closeNet();
+        this.playerCount = 2;
+        this.setState({ phase: 'menu', keyListen: null, netStatus: '', netStatusKind: '', wins: [0, 0], round: 1 });
+        return;
+      }
+    }
     this.roundActive = false;
     this.syncHud();
     this.setState({ phase: 'countdown', countdown: '3' });
@@ -1452,6 +1479,5 @@ class Component extends DCLogic {
   }
 }
 </script>
-
 </body>
 </html>
