@@ -367,8 +367,10 @@ class Component extends DCLogic {
   state = {
     phase: 'menu', round: 1, wins: [0, 0], lastWinner: 0, countdown: '3', muted: false,
     keyListen: null, netStatus: '', netStatusKind: '',
-    p1: { score: 0, lines: 0, level: 1, incoming: 0 },
-    p2: { score: 0, lines: 0, level: 1, incoming: 0 }
+    players: [
+      { score: 0, lines: 0, level: 1, incoming: 0, out: false },
+      { score: 0, lines: 0, level: 1, incoming: 0, out: false }
+    ]
   };
 
   ACTLIST = [['left', 'MOVE LEFT'], ['right', 'MOVE RIGHT'], ['rot', 'ROTATE'], ['soft', 'SOFT DROP'], ['hard', 'HARD DROP'], ['hold', 'HOLD']];
@@ -382,25 +384,24 @@ class Component extends DCLogic {
   DAS = 150; ARR = 45; SOFT = 90; LOCK = 480; CLEARMS = 150; MAXRESET = 15;
   GARB = [0, 0, 1, 2, 4];
   COLORS = { I: '#5FA8CF', J: '#7E8CD8', L: '#DFA35B', O: '#D9BE58', S: '#7FBB8C', T: '#B48CD3', Z: '#DB8578', G: '#C6C6BF' };
-  ACCENTS = ['#4E7FBE', '#C97A3D'];
+  ACCENTS = ['#4E7FBE', '#C97A3D', '#5A9E6F'];
+  playerCount = 2;
 
-  bindCanvas(key, w, h) {
+  makeCanvasRef(arr, i, w, h) {
     return (el) => {
       if (!el) return;
       const dpr = window.devicePixelRatio || 1;
       el.width = w * dpr; el.height = h * dpr; el.__dpr = dpr;
-      this[key] = el;
+      arr[i] = el;
     };
   }
-  refBoard1 = this.bindCanvas('cvB1', 300, 600);
-  refBoard2 = this.bindCanvas('cvB2', 300, 600);
-  refHold1 = this.bindCanvas('cvH1', 72, 40);
-  refHold2 = this.bindCanvas('cvH2', 72, 40);
-  refNext1 = this.bindCanvas('cvN1', 72, 124);
-  refNext2 = this.bindCanvas('cvN2', 72, 124);
 
   componentDidMount() {
     this.buildRots();
+    this.cvB = []; this.cvH = []; this.cvN = [];
+    this.refBoardFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvB, i, 300, 600));
+    this.refHoldFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvH, i, 72, 40));
+    this.refNextFns = [0, 1, 2].map(i => this.makeCanvasRef(this.cvN, i, 72, 124));
     this.players = [this.makePlayer(0), this.makePlayer(1)];
     this.players.forEach(p => this.fillQueue(p));
     if (!this.maps) this.maps = this.loadMaps();
@@ -996,20 +997,20 @@ class Component extends DCLogic {
   syncHud() {
     this.hudDirty = false;
     if (!this.players) return;
-    const snap = p => ({ score: p.score, lines: p.lines, level: p.level, incoming: p.pending });
-    this.setState({ p1: snap(this.players[0]), p2: snap(this.players[1]) });
+    const snap = p => ({ score: p.score, lines: p.lines, level: p.level, incoming: p.pending, out: !!p.out });
+    this.setState({ players: this.players.map(snap) });
   }
 
   drawAll() {
     if (!this.players) return;
-    for (let i = 0; i < 2; i++) {
+    for (let i = 0; i < this.players.length; i++) {
       this.drawBoard(this.players[i]);
       this.drawPreviews(this.players[i]);
     }
   }
 
   drawBoard(p) {
-    const cv = p.idx === 0 ? this.cvB1 : this.cvB2;
+    const cv = this.cvB[p.idx];
     if (!cv) return;
     const g = cv.getContext('2d');
     const dpr = cv.__dpr || 1;
@@ -1067,8 +1068,8 @@ class Component extends DCLogic {
   }
 
   drawPreviews(p) {
-    const hv = p.idx === 0 ? this.cvH1 : this.cvH2;
-    const nv = p.idx === 0 ? this.cvN1 : this.cvN2;
+    const hv = this.cvH[p.idx];
+    const nv = this.cvN[p.idx];
     if (hv) {
       const g = hv.getContext('2d'), dpr = hv.__dpr || 1;
       g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1204,10 +1205,10 @@ class Component extends DCLogic {
 
     return {
       p1NameU: n1, p2NameU: n2,
-      p1Score: s.p1.score, p1Lines: s.p1.lines, p1Level: s.p1.level,
-      p2Score: s.p2.score, p2Lines: s.p2.lines, p2Level: s.p2.level,
-      p1IncomingShow: s.p1.incoming > 0, p1Incoming: '+' + s.p1.incoming,
-      p2IncomingShow: s.p2.incoming > 0, p2Incoming: '+' + s.p2.incoming,
+      p1Score: s.players[0].score, p1Lines: s.players[0].lines, p1Level: s.players[0].level,
+      p2Score: s.players[1].score, p2Lines: s.players[1].lines, p2Level: s.players[1].level,
+      p1IncomingShow: s.players[0].incoming > 0, p1Incoming: '+' + s.players[0].incoming,
+      p2IncomingShow: s.players[1].incoming > 0, p2Incoming: '+' + s.players[1].incoming,
       roundNum: s.round,
       p1Dots: dots(0), p2Dots: dots(1),
       p1Hint: hintStr(0), p2Hint: hintStr(1),
@@ -1239,9 +1240,9 @@ class Component extends DCLogic {
       backToMenu: this.backToMenu, resetKeys: this.resetKeys,
       refHostCode: this.refHostCode, refHostAnswer: this.refHostAnswer,
       refJoinCode: this.refJoinCode, refJoinAnswer: this.refJoinAnswer,
-      refBoard1: this.refBoard1, refBoard2: this.refBoard2,
-      refHold1: this.refHold1, refHold2: this.refHold2,
-      refNext1: this.refNext1, refNext2: this.refNext2
+      refBoard1: this.refBoardFns[0], refBoard2: this.refBoardFns[1],
+      refHold1: this.refHoldFns[0], refHold2: this.refHoldFns[1],
+      refNext1: this.refNextFns[0], refNext2: this.refNextFns[1]
     };
   }
 }
