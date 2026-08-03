@@ -95,7 +95,6 @@ a:hover { color: #38639C; text-decoration: underline; }
                 </sc-for>
           </div>
         </div>
-        </sc-if>
 
         <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
               <div style="display: flex; align-items: center; gap: 8px">
@@ -507,12 +506,6 @@ class Component extends DCLogic {
     return { lines: 0, score: 0 };
   }
   saveMaps() { try { localStorage.setItem('stackDuelKeys', JSON.stringify(this.maps)); } catch (e) {} }
-  saveSoloBest() { try { localStorage.setItem('stackDuelSoloBest', JSON.stringify(this.soloBest)); } catch (e) {} }
-  updateSoloBest(lines, score) {
-    const beat = lines > this.soloBest.lines;
-    if (beat) { this.soloBest = { lines, score }; this.saveSoloBest(); }
-    return beat;
-  }
   saveSoloBest() { try { localStorage.setItem('stackDuelSoloBest', JSON.stringify(this.soloBest)); } catch (e) {} }
   updateSoloBest(lines, score) {
     const beat = lines > this.soloBest.lines;
@@ -1056,17 +1049,6 @@ class Component extends DCLogic {
     this.setState({ phase: 'soloover', soloResult: { lines: p.lines, score: p.score, level: p.level, beat } });
   }
 
-  _endSolo() {
-    if (!this.roundActive) return;
-    this.roundActive = false;
-    const p = this.players[0];
-    const beat = this.updateSoloBest(p.lines, p.score);
-    this.snd('lose');
-    this.overlayAt = performance.now();
-    this.syncHud();
-    this.setState({ phase: 'soloover', soloResult: { lines: p.lines, score: p.score, level: p.level, beat } });
-  }
-
   _endRound(winnerIdx) {
     if (!this.roundActive) return;
     this.roundActive = false;
@@ -1249,8 +1231,7 @@ class Component extends DCLogic {
       if (this.netMode) {
         this.update(this.players[this.myIdx], dt); // only simulate the local board
       } else {
-        this.update(this.players[0], dt);
-        this.update(this.players[1], dt);
+        this.players.forEach((p) => this.update(p, dt));
       }
     }
     if (this.netMode && this.net && this.state.phase === 'playing' && t - this.lastSend > 66) {
@@ -1493,7 +1474,8 @@ class Component extends DCLogic {
       p2Lines: s.players[1] ? s.players[1].lines : 0,
       p2Level: s.players[1] ? s.players[1].level : 1,
       p1IncomingShow: s.players[0].incoming > 0, p1Incoming: '+' + s.players[0].incoming,
-      p2IncomingShow: s.players[1].incoming > 0, p2Incoming: '+' + s.players[1].incoming,
+      p2IncomingShow: !!(s.players[1] && s.players[1].incoming > 0),
+      p2Incoming: '+' + (s.players[1] ? s.players[1].incoming : 0),
       roundNum: s.round,
       p1Dots: dots(0), p2Dots: dots(1),
       p1Hint: hintStr(0), p2Hint: hintStr(1),
