@@ -20,5 +20,5 @@ jobs:
       runner-labels: '["ubuntu-latest"]'
       default-model: z-ai/glm-5.2
       pipeline-ref: v1
-      agent: claude
+      agent: opencode
       pre-preview: true
