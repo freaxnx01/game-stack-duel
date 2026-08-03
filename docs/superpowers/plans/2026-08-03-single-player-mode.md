@@ -11,7 +11,7 @@
 ## Global Constraints
 
 - Repo is a bundled (dc-tool) game: edit **only** `src/Stack Duel.dc.html`. Never hand-edit the generated `index.html` / `src/support.js` (CLAUDE.md, "Bundled game (dc-tool)").
-- No automated test suite exists. Every task's verification step is: open `src/Stack Duel.dc.html` directly in a browser (per README: "Open the `.dc.html` directly in a browser to run from source") and manually exercise the described behavior.
+- No automated test suite exists. Each task's "manual verification" step describes what a **human, in a real browser**, should check — it documents intent, it is not an instruction for an unattended agent to launch a browser or HTTP server itself. **If you are implementing this plan in a headless/CI sandbox with no display and no `dc-tool` binary, do not attempt to execute these steps** — read the diff against the plan's Find/Replace blocks instead (see Task 7, which is explicit about this), and leave the actual playtest as a checklist item in the PR for the human reviewer. Attempting to spin up a local server or browser in such a sandbox will hang and burn the turn budget without ever reaching a commit/push — treat any spare turns better spent moving to the next task or opening the PR.
 - `localStorage` key convention: mirror the existing `stackDuelKeys` pattern (JSON-encoded, defensive `try/catch` parse, safe default on any failure) — see `loadMaps()`/`saveMaps()` at `src/Stack Duel.dc.html:481-494`.
 - Keep versus (local 2P/3P, online P2P) behavior byte-for-byte unchanged — every new branch must be additive and gated on `playerCount === 1` / a new `ph === 'soloover'` check, never a change to the existing 2/3-player code paths.
 - Commit after every task.
@@ -533,27 +533,72 @@ git commit -m "feat: show only the solo player's board in solo marathon mode"
 
 ---
 
-### Task 7: Full regression pass + re-bundle for publish
+### Task 7: Static self-review + open the PR
 
-**Files:** none (verification + build step only)
+**Files:** none (review + PR only)
 
-**Interfaces:** none — this task only exercises the finished feature and prepares it for shipping.
+**Interfaces:** none — this task reviews the finished diff and hands it to a human for the parts that require a real browser.
 
-- [ ] **Step 1: Full manual regression pass**
+> **No browser in this environment.** There is no display and no `dc-tool` binary
+> in the CI/agent sandbox that implements this plan — do not attempt to launch a
+> local HTTP server, open a browser, or otherwise interact with the running game.
+> Verification here is a **static read of the diff**, not execution. The actual
+> in-browser playtest and the `index.html` re-bundle are follow-ups for the human
+> who reviews the PR — list them as an explicit checklist in the PR description
+> instead of attempting them yourself.
 
-Open `src/Stack Duel.dc.html` in a browser and walk through, in order:
+- [ ] **Step 1: Static self-review of every task's diff**
 
-1. Menu → SOLO MARATHON → play, clear lines, top out → confirm game-over copy, best-score tracking (per Task 3/5), PLAY AGAIN restart, and Space/Enter restart (Task 4) all work.
-2. Menu → START LOCAL MATCH → play a full best-of-3 with two keyboards (or one person on both keymaps) → confirm garbage rows, round/match-over screens, and win dots are unaffected.
-3. Menu → HOST ONLINE GAME (or CONTROLS → remap a key, then RESET TO DEFAULTS) → confirm these screens still open/close correctly and are visually unaffected by the `boardsJustify`/`showVersusHud` changes.
-4. Resize the browser window narrow/wide during a solo round — confirm the single centered board doesn't overlap the page edges awkwardly (no functional requirement, just a sanity check).
+Re-read `git diff main..HEAD -- "src/Stack Duel.dc.html"` end to end and check it
+against this plan's Tasks 1-6, one at a time:
 
-Fix anything broken before proceeding — do not commit over a known regression.
+- Every `Find`/`Replace` block from Tasks 1-6 landed exactly as specified (no
+  partial edits, no leftover `TEMP stub` from Task 2 if Task 3 ran).
+- No accidental double-application (e.g. `showVersusHud`/`boardsJustify` added
+  twice) and no unrelated lines changed.
+- `git log --oneline main..HEAD` shows one commit per task (per this plan's
+  "commit after every task" constraint).
 
-**Step 2: Re-bundle for the generated files**
+Fix anything that doesn't match before proceeding — do not open a PR over a
+diff that doesn't match the plan.
 
-Per CLAUDE.md's bundled-game convention, `index.html` and `src/support.js` are generated from `src/Stack Duel.dc.html` and must never be hand-edited. Follow this repo's existing publish workflow (see `README.md`'s "Publishing" section / `CLAUDE.md`) to regenerate `index.html` from the updated source before this change is considered shippable — this plan's tasks only touch the source file.
+**Step 2: Check for a `dc-tool` re-bundle, skip gracefully if absent**
 
-**Step 3: Update the issue**
+```bash
+command -v dc-tool >/dev/null 2>&1 && echo present || echo absent
+```
 
-Once the regression pass and re-bundle are done, comment on GitHub issue #3 (`freaxnx01/game-stack-duel`) confirming solo marathon mode is implemented and ready for review/publish.
+If `absent` (expected in this sandbox), do **not** attempt to hand-roll a bundle
+or hand-edit the generated `index.html`/`src/support.js` — leave them
+unmodified and note the pending re-bundle in the PR description (Step 3). If a
+`dc-tool` binary happens to be present, follow this repo's existing publish
+workflow (`README.md`'s "Publishing" section / `CLAUDE.md`) to regenerate
+`index.html` from the updated source and commit that as its own commit.
+
+**Step 3: Push the branch and open the draft PR**
+
+```bash
+git push -u origin HEAD
+gh pr create --draft \
+  --title "feat: add solo marathon mode" \
+  --body "Closes #3
+
+## Summary
+- Adds a SOLO MARATHON menu entry: one board, no opponent, no garbage, ends on top-out
+- Persists best lines/score to \`localStorage\` (\`stackDuelSoloBest\`)
+- Hides the opponent board/panel and centers the single board in solo mode
+- Local 2P/3P and online modes are unaffected (only additive, playerCount-gated branches)
+
+## Self-review performed
+- Diffed every task's changes in \`src/Stack Duel.dc.html\` against the plan's Find/Replace blocks — all landed as specified, one commit per task
+- \`dc-tool\` is not available in this environment — \`index.html\`/\`src/support.js\` are NOT re-bundled by this PR
+
+## Still needed before merge (human/browser step — could not be done in this sandbox)
+- [ ] Open \`src/Stack Duel.dc.html\` in an actual browser and play through: SOLO MARATHON to a top-out (best-score persists, PLAY AGAIN and Space/Enter restart work), then a full local 2P best-of-3 (garbage/round/match-over/win-dots unaffected), then open HOST ONLINE GAME and CONTROLS to confirm they're visually unaffected
+- [ ] Re-bundle \`index.html\`/\`src/support.js\` from \`src/Stack Duel.dc.html\` per this repo's publish workflow, then verify \`git diff\` shows only the expected generated-file changes"
+```
+
+This is the task that actually matters for pipeline recovery: **do not end the
+run without having pushed the branch and opened this PR** — a finished diff
+that's never pushed is indistinguishable from no progress at all once the
+sandbox is torn down.
