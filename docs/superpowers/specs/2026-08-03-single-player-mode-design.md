@@ -93,14 +93,25 @@ else if (ph === 'soloover') { this.startRound(); }
 
 ## Layout
 
-Solo mode reuses the existing single-board layout math
-(`boardW = this.playerCount === 3 ? 230 : 300`, so `playerCount === 1` already
-resolves to the 300px board) with only one board rendered: the render path
-that lays out per-player panels iterates `this.players`/`this.playerCount`, so
-for `playerCount === 1` only one board panel appears with no code changes
-needed there. The wins-dots UI (`dots(i)`) is skipped for solo — it's already
-gated implicitly by only being rendered per opponent-vs-opponent phases
-(`roundover`/`matchover`); the new `soloover` phase simply doesn't render it.
+**Correction from initial draft:** the template does *not* loop over
+`this.players`/`this.playerCount` for panel layout — Player 1 and Player 2's
+boards/side-panels are separate, hand-written markup blocks (Player 3's is the
+only one already conditionally gated, via `isThreePlayer`). So Player 2's
+board/panel is unconditionally rendered today and must be explicitly hidden
+for solo mode, not skipped "for free".
+
+The fix: wrap the contiguous middle "ROUND + win-dots" column and Player 2's
+board/panel (one continuous block in the markup) in a new `sc-if
+value="{{ showVersusHud }}"` gate, where `showVersusHud = playerCount !== 1`.
+The outer boards flex row also gets a `justify-content: {{ boardsJustify }}`
+(`'center'` for solo, `'flex-start'` otherwise) so the single remaining board
+is centered rather than pinned to the left edge. `renderVals()`'s existing
+`s.players[1]`-reading fields (`p2Score`/`p2Lines`/`p2Level`) also need a
+`s.players[1] ? ... : ...` guard, mirroring the guard `p3Score`/etc. already
+use — today they'd throw when `state.players` has length 1.
+
+`boardW = this.playerCount === 3 ? 230 : 300` is unaffected and already
+resolves to 300px for solo, unchanged.
 
 ## Copy (`renderVals()`)
 
