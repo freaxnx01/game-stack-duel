@@ -33,7 +33,7 @@ a:hover { color: #38639C; text-decoration: underline; }
     </div>
 
     <div style="position: relative">
-      <div style="display: flex; gap: 24px; align-items: stretch">
+      <div style="display: flex; gap: 24px; align-items: stretch; justify-content: {{ boardsJustify }}">
 
         <div style="width: 132px; display: flex; flex-direction: column; align-items: flex-end; gap: 22px; padding-top: 20px">
           <div style="display: flex; align-items: center; gap: 8px">
@@ -74,6 +74,7 @@ a:hover { color: #38639C; text-decoration: underline; }
           <div style="font-size: 11px; color: #9A9A93; letter-spacing: 0.04em; text-align: center">{{ p1Hint }}</div>
         </div>
 
+        <sc-if value="{{ showVersusHud }}" hint-placeholder-val="{{ true }}">
         <div style="width: 118px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 30px 0 24px">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 2px">
             <div style="font-size: 10px; font-weight: 600; letter-spacing: 0.2em; color: #9A9A93">ROUND</div>
@@ -94,9 +95,10 @@ a:hover { color: #38639C; text-decoration: underline; }
                 <sc-for list="{{ p2Dots }}" as="d" hint-placeholder-count="2">
                   <div style="width: 11px; height: 11px; border-radius: 50%; box-sizing: border-box; background: {{ d.bg }}; border: 2px solid {{ d.bd }}"></div>
                 </sc-for>
-              </div>
-            </div>
-            <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
+          </div>
+        </div>
+
+        <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
               <div style="display: flex; align-items: center; gap: 8px">
                 <div style="font-size: 10px; font-weight: 700; color: #8B8B85; letter-spacing: 0.08em; width: 16px">P3</div>
                 <div style="display: flex; gap: 6px">
@@ -148,6 +150,7 @@ a:hover { color: #38639C; text-decoration: underline; }
             </div>
           </div>
         </div>
+        </sc-if>
 
         <sc-if value="{{ isThreePlayer }}" hint-placeholder-val="{{ false }}">
           <div style="display: flex; flex-direction: column; gap: 7px">
@@ -424,6 +427,7 @@ class Component extends DCLogic {
   state = {
     phase: 'menu', round: 1, wins: [0, 0], lastWinner: 0, countdown: '3', muted: false,
     keyListen: null, netStatus: '', netStatusKind: '',
+    soloResult: { lines: 0, score: 0, level: 1, beat: false },
     players: [
       { score: 0, lines: 0, level: 1, incoming: 0, out: false },
       { score: 0, lines: 0, level: 1, incoming: 0, out: false }
@@ -462,6 +466,7 @@ class Component extends DCLogic {
     this.players = [this.makePlayer(0), this.makePlayer(1)];
     this.players.forEach(p => this.fillQueue(p));
     if (!this.maps) this.maps = this.loadMaps();
+    this.soloBest = this.loadSoloBest();
     this.hostCode = ''; this.joinAnswer = '';
     this.lastSend = 0;
     this.roundActive = false;
@@ -509,7 +514,22 @@ class Component extends DCLogic {
     } catch (e) {}
     return def;
   }
+  loadSoloBest() {
+    try {
+      const raw = localStorage.getItem('stackDuelSoloBest');
+      if (!raw) return { lines: 0, score: 0 };
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed.lines === 'number' && typeof parsed.score === 'number') return parsed;
+    } catch (e) {}
+    return { lines: 0, score: 0 };
+  }
   saveMaps() { try { localStorage.setItem('stackDuelKeys', JSON.stringify(this.maps)); } catch (e) {} }
+  saveSoloBest() { try { localStorage.setItem('stackDuelSoloBest', JSON.stringify(this.soloBest)); } catch (e) {} }
+  updateSoloBest(lines, score) {
+    const beat = lines > this.soloBest.lines;
+    if (beat) { this.soloBest = { lines, score }; this.saveSoloBest(); }
+    return beat;
+  }
 
   keyFor(i, action) {
     const m = this.netMode ? this.NETMAP : this.maps[i];
@@ -566,6 +586,11 @@ class Component extends DCLogic {
 
   openControls = () => { this.ensureAC(); this.setState({ phase: 'controls', keyListen: null }); };
   chooseHostPlayerCount = (n) => { this.playerCount = n; this.setState({}); };
+  openSolo = () => {
+    this.ensureAC();
+    this.playerCount = 1;
+    this.startRound();
+  };
   openHost = () => {
     this.ensureAC();
     this.myIdx = 0; this.nets = []; this.hostGuestIdx = 0; this.droppedGuests = new Set();
@@ -1025,9 +1050,21 @@ class Component extends DCLogic {
     if (!this.playerAlive[idx]) return;
     this.playerAlive[idx] = false;
     if (this.players[idx]) this.players[idx].out = true;
+    if (this.playerCount === 1) { this._endSolo(); return; }
     const survivors = [];
     for (let i = 0; i < this.playerAlive.length; i++) if (this.playerAlive[i]) survivors.push(i);
     if (survivors.length === 1) this._endRound(survivors[0]);
+  }
+
+  _endSolo() {
+    if (!this.roundActive) return;
+    this.roundActive = false;
+    const p = this.players[0];
+    const beat = this.updateSoloBest(p.lines, p.score);
+    this.snd('lose');
+    this.overlayAt = performance.now();
+    this.syncHud();
+    this.setState({ phase: 'soloover', soloResult: { lines: p.lines, score: p.score, level: p.level, beat } });
   }
 
   _endRound(winnerIdx) {
@@ -1096,6 +1133,7 @@ class Component extends DCLogic {
     if (ph === 'menu') { this.setState({ round: 1, wins: this.players.map(() => 0) }); this.startRound(); }
     else if (ph === 'roundover') { this.setState({ round: this.state.round + 1 }); this.startRound(); }
     else if (ph === 'matchover') { this.setState({ round: 1, wins: this.players.map(() => 0) }); this.startRound(); }
+    else if (ph === 'soloover') { this.startRound(); }
   };
 
   toggleMute = () => { this.ensureAC(); this.setState(s => ({ muted: !s.muted })); };
@@ -1125,7 +1163,7 @@ class Component extends DCLogic {
       this.setState({ phase: ph === 'playing' ? 'paused' : 'playing' });
       return;
     }
-    if (ph === 'menu' || ph === 'roundover' || ph === 'matchover') {
+    if (ph === 'menu' || ph === 'roundover' || ph === 'matchover' || ph === 'soloover') {
       if (code === 'Enter' || code === 'Space') this.advance();
       return;
     }
@@ -1211,8 +1249,7 @@ class Component extends DCLogic {
       if (this.netMode) {
         this.update(this.players[this.myIdx], dt); // only simulate the local board
       } else {
-        this.update(this.players[0], dt);
-        this.update(this.players[1], dt);
+        this.players.forEach((p) => this.update(p, dt));
       }
     }
     if (this.netMode && this.net && this.state.phase === 'playing' && t - this.lastSend > 66) {
@@ -1382,7 +1419,14 @@ class Component extends DCLogic {
     if (ph === 'menu') {
       kicker = 'TWO PLAYER · FIRST TO 2 ROUNDS';
       title = 'STACK DUEL';
-      sub = 'Clear lines to dump garbage on your opponent. Play local hot-seat or online against a friend — remap keys under CONTROLS.';
+      sub = 'Clear lines to dump garbage on your opponent. Play local hot-seat or online against a friend, or go solo marathon — remap keys under CONTROLS.'
+        + (this.soloBest && this.soloBest.lines > 0 ? '  ·  SOLO BEST: ' + this.soloBest.lines + ' LINES' : '');
+    } else if (ph === 'soloover') {
+      kicker = 'SOLO MARATHON';
+      title = 'GAME OVER';
+      sub = s.soloResult.lines + ' LINES · LEVEL ' + s.soloResult.level
+        + (s.soloResult.beat ? '  ·  NEW BEST!' : '  ·  BEST: ' + this.soloBest.lines + ' LINES');
+      button = 'PLAY AGAIN';
     } else if (ph === 'countdown') {
       kicker = netTag + 'ROUND ' + s.round;
     } else if (ph === 'roundover') {
@@ -1410,10 +1454,12 @@ class Component extends DCLogic {
       dark: btnBase + '; background: #1D1D1B; color: #F6F6F3',
       blue: btnBase + '; background: #4E7FBE; color: #FFFFFF',
       orange: btnBase + '; background: #C97A3D; color: #FFFFFF',
+      green: btnBase + '; background: #5A9E6F; color: #FFFFFF',
       ghost: btnBase + '; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1'
     };
     const menuButtons = [
       { lab: 'START LOCAL MATCH', style: btn.dark, onClick: this.advance },
+      { lab: 'SOLO MARATHON', style: btn.green, onClick: this.openSolo },
       { lab: 'HOST ONLINE GAME', style: btn.blue, onClick: this.openHost },
       { lab: 'JOIN ONLINE GAME', style: btn.orange, onClick: this.openJoin },
       { lab: 'CONTROLS', style: btn.ghost, onClick: this.openControls }
@@ -1442,9 +1488,12 @@ class Component extends DCLogic {
     return {
       p1NameU: n1, p2NameU: n2,
       p1Score: s.players[0].score, p1Lines: s.players[0].lines, p1Level: s.players[0].level,
-      p2Score: s.players[1].score, p2Lines: s.players[1].lines, p2Level: s.players[1].level,
+      p2Score: s.players[1] ? s.players[1].score : 0,
+      p2Lines: s.players[1] ? s.players[1].lines : 0,
+      p2Level: s.players[1] ? s.players[1].level : 1,
       p1IncomingShow: s.players[0].incoming > 0, p1Incoming: '+' + s.players[0].incoming,
-      p2IncomingShow: s.players[1].incoming > 0, p2Incoming: '+' + s.players[1].incoming,
+      p2IncomingShow: !!(s.players[1] && s.players[1].incoming > 0),
+      p2Incoming: '+' + (s.players[1] ? s.players[1].incoming : 0),
       roundNum: s.round,
       p1Dots: dots(0), p2Dots: dots(1),
       p1Hint: hintStr(0), p2Hint: hintStr(1),
@@ -1462,7 +1511,7 @@ class Component extends DCLogic {
       showHostScreen: ph === 'host',
       showJoinScreen: ph === 'join',
       showWaitHost: showWaitHost,
-      showButton: (ph === 'roundover' || ph === 'matchover') && !showWaitHost,
+      showButton: (ph === 'roundover' || ph === 'matchover' || ph === 'soloover') && !showWaitHost,
       buttonLabel: button,
       countdownText: s.countdown,
       netStatus: s.netStatus,
@@ -1491,6 +1540,8 @@ class Component extends DCLogic {
       p3Dots: dots(2),
       p3Hint: hintStr(2),
       isThreePlayer: this.playerCount === 3,
+      showVersusHud: this.playerCount !== 1,
+      boardsJustify: this.playerCount === 1 ? 'center' : 'flex-start',
       boardW, boardH,
       showPlayerCountPicker: ph === 'host' && this.hostGuestIdx === 0 && this.state.netStatus.indexOf('Connected') === -1,
       pickTwoPlayers: () => this.chooseHostPlayerCount(2),
