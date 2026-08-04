@@ -1163,7 +1163,7 @@ class Component extends DCLogic {
     for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue; // net: only local player's keys
       if (this.playerAlive && !this.playerAlive[i]) continue;
-      const act = this.netMode ? this.NETMAP[code] : this.maps[i][code];
+      const act = this.mapFor(i)[code];
       if (!act) continue;
       this.doAction(this.players[i], act);
     }
@@ -1186,7 +1186,7 @@ class Component extends DCLogic {
     for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue;
       if (this.playerAlive && !this.playerAlive[i]) continue;
-      const act = this.netMode ? this.NETMAP[e.code] : this.maps[i][e.code];
+      const act = this.mapFor(i)[e.code];
       if (!act) continue;
       const p = this.players[i];
       if (act === 'left' || act === 'right') {
