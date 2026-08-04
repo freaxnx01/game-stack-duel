@@ -89,27 +89,9 @@ These commands ship from the global operator console (`agent-workflow`), install
 
 ## Localization (i18n) & Regional Formatting
 
-User-facing apps must support **`de` and `en`**. CI tooling and developer-only utilities are exempt.
+User-facing apps support **`de` and `en`** (CI/dev tooling exempt). Regional formatting follows the **OS region**, not the UI language; `de` with an unknown region falls back to **`de-CH`**. Render via the platform localization API, never `string.Format` / `toString()`.
 
-### Language
-
-- Default language resolved from the OS / browser locale at first launch
-- User can override at runtime via an in-app language switcher
-- The user's choice is persisted (cookie, preferences store, or user profile — stack-specific)
-
-### Regional formatting (decoupled from language)
-
-Regional formatting (date, time, number, currency separators) is selected from the OS region — **not** dictated by the language.
-
-- Auto-detect any `de-*` OS region (`de-CH`, `de-DE`, `de-AT`, …) and use the matching culture
-- If the language is `de` but the OS region is missing or unrecognized: fall back to **`de-CH`**
-- For `en`: use the OS-provided region (typically `en-US` / `en-GB`) — do not force a default
-
-### Rules
-
-- All date / number / currency rendering goes through the platform's localization API — never hand-format with raw `string.Format` / `toString()` / template literals.
-- Do not couple regional formatting to the UI language. A user can read German text with US formatting, or English text with Swiss formatting; both must work.
-- Stack overlays specify the concrete API (`CultureInfo` + `RequestLocalization` for .NET, `flutter_localizations` + `intl` for Flutter, etc.).
+Full rules: [`localization.md`](https://github.com/freaxnx01/ai-instructions/blob/main/.ai/references/base/localization.md)
 
 ---
 
@@ -164,7 +146,7 @@ main              ← always deployable, protected
 - Delete branch after merge
 - Rebase or squash merge — no merge commits on `main`
 
-Exception: trivial non-code edits (build-script tweaks, comments, docs typos) may skip review and push directly; CI must still pass. Source/runtime-config/CI changes still need a PR.
+All changes go through a PR, including docs-only ones. There is no trivial-edit exception: a direct push to a protected `main` lands before the required checks report, so they become a postmortem instead of a gate, and it leaves open PRs' branches stale.
 
 ---
 
@@ -228,6 +210,34 @@ Template: [`.ai/references/base/pr-description-template.md`](https://github.com/
 
 ---
 
+## Issue Title Conventions
+
+Issue titles follow the same Conventional Commits format as commits and PR
+titles: `<type>(<scope>): <short summary>`, same **Types** list above
+(`feat`, `fix`, `test`, `refactor`, `chore`, `docs`, `ci`, `perf`). `<scope>`
+is optional — include it when there's an obvious one (a feature area, a
+file/module), omit it (`type: summary`, no parens) when there isn't; don't
+force one.
+
+This is the standard signal for "is this a new capability, a fix, or
+maintenance" — don't introduce a parallel `type:*` label for the same
+purpose. (An earlier pass briefly used `type:feat`/`type:fix`/`type:chore`
+labels on some `game-*` repos before this convention was written down here;
+those were retrofitted to title prefixes and the labels should not be
+reused.)
+
+```text
+feat(hub): show original title + Wikipedia link for retro clones
+fix(map): show Ukraine with 1991 borders incl. Crimea
+chore: move off GitHub Pages to a solution with visit logs and monitoring
+```
+
+`needs-enrichment` (and any other workflow label) is orthogonal and stacks
+normally — the type prefix says *what kind* of change, the label says
+*where it is in the pipeline*.
+
+---
+
 ## CI/CD (generic outline)
 
 Pipeline stages: `build` → `test` → `security-scan` → `container-build` → `push`
@@ -238,6 +248,20 @@ Pipeline stages: `build` → `test` → `security-scan` → `container-build` �
 - E2E tests run against the built image before it is marked as a release candidate
 
 Concrete CI configuration (GitHub Actions YAML, commands, package scanners) lives in the stack overlay.
+
+---
+
+## Scripting
+
+**PowerShell — customer-delivered scripts target Windows PowerShell 5.1.** Anything a customer runs (`build.ps1`, install/deploy scripts, release artifacts) must run on 5.1 unless the project documents a PS 7+ floor; `pwsh` is not installed there.
+
+- **Never** use `??`, `??=`, ternary `? :`, `?.`, `&&` / `||` chains — *parse* errors on 5.1, so the script dies before its first line — nor `ForEach-Object -Parallel`, `Sort-Object -Stable`, `-SslProtocol`
+- `$IsWindows` / `$IsLinux` / `$IsMacOS` **do not exist** on 5.1 — they are `$null`, so the branch is silently skipped. Use `$env:OS -eq 'Windows_NT'`
+- Pass `-Depth` to `ConvertTo-Json` (defaults to 2, truncates silently) and `-UseBasicParsing` to the web cmdlets (a patched host prompts and hangs)
+- Start with `#requires -Version 5.1`, pin encoding, verify with PSScriptAnalyzer
+- **Exempt:** dev-loop tooling (`justfile` recipes) may require `pwsh`
+
+Full rules: [`powershell-5.1.md`](https://github.com/freaxnx01/ai-instructions/blob/main/.ai/references/base/powershell-5.1.md)
 
 ---
 
@@ -317,7 +341,7 @@ artifact.
 | Multiplayer | Manual WebRTC (`RTCPeerConnection` + data channel) — **no signaling server, PeerJS, or Firebase** |
 | Persistence | `localStorage` |
 | Hosting | GitHub Pages, static, served from repo-root `index.html` |
-| Build | **None required.** A few games use a source→`index.html` bundler (dc-tool) — see Project Structure |
+| Build | **None required.** A few games use a source→`index.html` bundler ("dc-tool" format) — see Project Structure; there is **no CLI** for it, re-bundling is a manual merge |
 | Versioning | Git tag `vX.Y.Z` (authoritative) + `version.js` display mirror |
 | Changelog | `git-cliff` + `cliff.toml` (base tooling) |
 | Lint / format | Optional `npx prettier` / `npx eslint`; nothing committed |
@@ -343,13 +367,33 @@ vendor/                 ← third-party libs vendored (no npm)
 CHANGELOG.md  cliff.toml  README.md  LICENSE
 
 # Bundled game (dc-tool)
-source/ or *.dc.html    ← EDIT THIS
-index.html  support.js  ← GENERATED — do not hand-edit
+src/*.dc.html           ← EDIT THIS
+index.html  support.js  ← GENERATED — see re-bundling process below
 ```
 
 A bundled game is identified by a `data-dc-script` / `type="text/x-dc"` marker
-in `index.html`. For those repos, always edit the source and re-bundle — never
-hand-edit the generated `index.html` or `support.js`.
+in `index.html`. `support.js` is the generic dc runtime — it loads React/Babel
+from `unpkg.com` at page-load time and hydrates the `<x-dc>` markup live in the
+browser; it is not a build step and essentially never changes when editing
+game logic. `index.html` is what GitHub Pages actually serves.
+
+**There is no `dc-tool` CLI.** Despite the name, re-bundling is not a command
+to run — it's a manual merge, confirmed working in practice (`game-stack-duel`,
+2026-08-04): copy the full current `src/*.dc.html` content into `index.html`,
+then re-apply `index.html`'s fixed set of source-file-only additions (these
+vary slightly per repo, but typically: a `<link rel="icon">` favicon tag, a
+`<script src="./version.js">` include, a `#game-nav` footer block, and a
+version-badge self-healing script — diff the previous `index.html` against the
+source once to find a given repo's exact set). Verify the merge with
+`diff src/*.dc.html index.html` — the only differences should be exactly
+those known additions; anything else means the merge missed something.
+
+Editing `index.html` directly with *ad hoc* changes (not derived from the
+source) is still forbidden (see the Agent Guardrails below). But skipping the
+re-bundle entirely after a source edit is the more common and more damaging
+failure: the source commit looks complete, but the published site doesn't
+change at all, because GitHub Pages serves the stale `index.html`. Always
+re-bundle as part of the same change, not a follow-up.
 
 ---
 
@@ -462,22 +506,198 @@ Manual verification checklist before every push/release:
 - [ ] P2P: both peers connect, exchange state, and the game survives a
       disconnect/reconnect
 
-Optional, nothing committed: `npx prettier --write .`, `npx eslint .`.
+**For anything interactive that JS drives at runtime — a toggle, a button
+that changes on-screen state, anything added via `addEventListener` or DOM
+injection — verify it with an actual browser executing real JS, not just a
+`curl`/text fetch of the HTML.** A static fetch confirms the markup and
+script tags are present; it cannot confirm a click handler actually fires,
+or that a framework elsewhere on the page didn't silently strip it. Playwright
+(`pip install playwright && playwright install chromium`, or already
+available in this environment) is the right tool:
+
+```python
+from playwright.sync_api import sync_playwright
+
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_page()
+    page.goto("https://github.freaxnx01.ch/game-<name>/", wait_until="networkidle")
+    page.locator("#some-button").click()
+    assert page.locator("text=Expected result").count() > 0
+    browser.close()
+```
+
+This is how the `#game-nav` i18n-toggle bug above was actually found — a
+`curl` check of `index.html`/`i18n.js` showed everything present and
+correct, but the button was invisible and non-functional in a real browser
+the whole time.
 
 ---
 
 ## Localization (i18n)
 
 Base's `de`/`en` rule applies to games with meaningful UI text (menus, HUD
-copy, quiz questions). Lightweight vanilla pattern:
-
-- A `strings` object keyed by locale (`{ en: {...}, de: {...} }`)
-- Detect the initial language from `navigator.language`
-- Provide a switcher; persist the choice in `localStorage`
+copy, quiz questions).
 
 **Carve-out:** pure-arcade games with negligible on-screen text (a score and a
 "GAME OVER") may defer i18n. Text-heavy games (quizzes, dialog-driven games)
 must comply.
+
+### `i18n.js` (copy verbatim into the game repo)
+
+Every `game-*` repo is served under the same `github.freaxnx01.ch` origin
+(different path per repo), so `localStorage` is shared across all of them —
+one `gg-lang` key means picking a language once carries into every other
+game. `i18n.js` loads like `version.js` (classic script, before the game's
+own script) and owns detection, persistence, and the toggle button; it knows
+nothing about any individual game's strings.
+
+```javascript
+(function () {
+  "use strict";
+
+  var SUPPORTED = ["en", "de"];
+  var STORAGE_KEY = "gg-lang";
+
+  function detect() {
+    var stored = null;
+    try { stored = localStorage.getItem(STORAGE_KEY); } catch (e) {}
+    if (stored && SUPPORTED.indexOf(stored) !== -1) return stored;
+    var nav = (navigator.language || "en").toLowerCase();
+    return nav.indexOf("de") === 0 ? "de" : "en";
+  }
+
+  window.GG_LANG = detect();
+
+  window.ggSetLang = function (lang) {
+    if (SUPPORTED.indexOf(lang) === -1) return;
+    window.GG_LANG = lang;
+    try { localStorage.setItem(STORAGE_KEY, lang); } catch (e) {}
+    window.dispatchEvent(new CustomEvent("gg-langchange", { detail: { lang: lang } }));
+  };
+
+  // Delegated on `document`, not on the button itself: some games' #game-nav
+  // is managed by a UI framework (e.g. a dc-tool-bundled game whose runtime
+  // mounts a React root over it) that periodically recreates its DOM
+  // subtree from the framework's own tracked template — silently dropping
+  // any listener attached directly to a child node (and stripping raw
+  // `onclick="..."` attributes, since a framework like React expects a
+  // function-valued prop, not a string). A listener on `document` is
+  // outside that subtree, so it survives regardless of how often the
+  // button node underneath it gets replaced; it just re-checks
+  // `event.target` on every click. See the "Framework-managed #game-nav"
+  // note below.
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest && e.target.closest("#gg-lang-toggle");
+    if (btn) window.ggSetLang(window.GG_LANG === "en" ? "de" : "en");
+  });
+
+  function injectToggle() {
+    // A pre-existing button (e.g. static markup inside a framework-managed
+    // #game-nav — see below) is left alone; the delegated listener above
+    // already covers clicks on it.
+    if (document.getElementById("gg-lang-toggle")) return;
+
+    var nav = document.getElementById("game-nav");
+    if (!nav) return;
+
+    var sep = document.createElement("span");
+    sep.setAttribute("aria-hidden", "true");
+    sep.style.color = "#5a6072";
+    sep.textContent = "·";
+
+    var btn = document.createElement("button");
+    btn.id = "gg-lang-toggle";
+    btn.type = "button";
+    btn.title = "Switch language";
+    btn.style.cssText =
+      "background:none;border:none;padding:0;margin:0;font:inherit;color:#8fd8e8;cursor:pointer";
+    btn.textContent = window.GG_LANG.toUpperCase();
+
+    window.addEventListener("gg-langchange", function (e) {
+      var b = document.getElementById("gg-lang-toggle");
+      if (b) b.textContent = e.detail.lang.toUpperCase();
+    });
+
+    nav.appendChild(sep);
+    nav.appendChild(btn);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", injectToggle);
+  } else {
+    injectToggle();
+  }
+})();
+```
+
+Load it in `index.html`, right where `version.js` loads:
+
+```html
+<script src="./version.js"></script>
+<script src="./i18n.js"></script>
+```
+
+For a plain-HTML game, `injectToggle()` appends the button into the existing
+`#game-nav` footer itself — no new UI surface to design per game.
+
+### Framework-managed `#game-nav` (dc-tool / DCLogic games)
+
+Some bundled games (identified by a `data-dc-script` / `type="text/x-dc"`
+marker) mount a full UI framework (React, via the dc-tool runtime) over the
+**entire page**, `#game-nav` included, even when `#game-nav` itself is
+static, hand-written markup rather than part of the game's own
+`class Component` template. That framework periodically recreates
+`#game-nav`'s DOM subtree from its own tracked copy — confirmed with
+Playwright against a real pilot (`game-iron-valhalla`): a button injected by
+`injectToggle()` flickered in and out during the first ~0.5s of settling
+re-renders, then vanished for good and never came back. The same is true for
+a raw `onclick="..."` attribute added to static markup by hand — React
+silently strips it (it expects a function-valued `onClick` prop, not a
+string) rather than erroring loudly, so the failure mode is "button visible,
+does nothing," not a crash.
+
+For these games, don't rely on `injectToggle()` to create the button. Add it
+as static markup directly in `#game-nav`'s existing HTML, with a **static**
+"EN/DE" label (not a dynamically-updated current-language indicator — a
+JS-driven text update would hit the exact same problem) and no inline
+`onclick`:
+
+```html
+  <span style="color:#5a6072" aria-hidden="true">·</span>
+  <button id="gg-lang-toggle" type="button" title="Switch language" style="background:none;border:none;padding:0;margin:0;font:inherit;color:#8fd8e8;cursor:pointer">EN/DE</button>
+```
+
+`i18n.js`'s `document`-level delegated click listener (above) picks up clicks
+on it regardless of how often the framework recreates the node underneath —
+`injectToggle()` sees the button already exists and does nothing further.
+`i18n.js` itself doesn't need any per-game changes for this case.
+
+### Per-game strings
+
+Each game owns its own strings — `i18n.js` never sees them:
+
+```javascript
+const STRINGS = {
+  en: { newGame: "NEW GAME" /* ... */ },
+  de: { newGame: "NEUES SPIEL" /* ... */ },
+};
+
+function t(key) {
+  return (STRINGS[window.GG_LANG] && STRINGS[window.GG_LANG][key])
+    || STRINGS.en[key]
+    || key;
+}
+```
+
+Replace every literal English UI string in a render path with `t("key")`.
+Whatever a game's normal re-render mechanism is, trigger it from a
+`gg-langchange` listener so switching languages updates on-screen text
+immediately, without a reload:
+
+```javascript
+window.addEventListener("gg-langchange", () => /* re-render */);
+```
 
 ---
 
@@ -549,8 +769,11 @@ In addition to the base guardrails:
 - Do not introduce a signaling server or a P2P library (PeerJS, Firebase).
 - Keep the game shippable as static files — no server-side runtime.
 - Keep `version.js` equal to the latest git tag; never let it drift.
-- Never hand-edit a bundled game's generated `index.html`/`support.js` — edit
-  the source and re-bundle.
+- Never make ad hoc edits directly to a bundled game's generated
+  `index.html`/`support.js` — edit the source and re-bundle (see "Bundled game
+  (dc-tool)" above for the manual-merge process; there is no CLI). Skipping the
+  re-bundle after a source change is just as wrong as hand-editing — it ships
+  nothing.
 - Don't embed secrets in client JS.
 
 ### Never generate (this stack)
