@@ -260,6 +260,16 @@ a:hover { color: #38639C; text-decoration: underline; }
                       <div style="display: flex; align-items: center; gap: 12px; width: 200px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><button onClick="{{ d.onClick }}" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: {{ d.bg }}; border: 1px solid {{ d.bd }}; border-radius: 3px; padding: 4px 10px; color: {{ d.fg }}; cursor: pointer; min-width: 78px">{{ d.disp }}</button></div>
                     </sc-for>
                   </div>
+                  <div style="width: 1px; background: #E0E0DA"></div>
+                  <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start">
+                    <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 3px">
+                      <div style="width: 8px; height: 8px; background: #5A9E6F"></div>
+                      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">SOLO</div>
+                    </div>
+                    <sc-for list="{{ editSolo }}" as="d" hint-placeholder-count="6">
+                      <div style="display: flex; align-items: center; gap: 12px; width: 200px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><button onClick="{{ d.onClick }}" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: {{ d.bg }}; border: 1px solid {{ d.bd }}; border-radius: 3px; padding: 4px 10px; color: {{ d.fg }}; cursor: pointer; min-width: 78px">{{ d.disp }}</button></div>
+                    </sc-for>
+                  </div>
                 </div>
                 <div style="display: flex; gap: 12px; margin-top: 6px">
                   <button onClick="{{ resetKeys }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1; padding: 11px 20px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2">RESET TO DEFAULTS</button>
@@ -480,7 +490,8 @@ class Component extends DCLogic {
   defaultMaps() {
     return [
       { KeyA: 'left', KeyD: 'right', KeyS: 'soft', KeyW: 'rot', Space: 'hard', ShiftLeft: 'hold' },
-      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Enter: 'hard', ShiftRight: 'hold' }
+      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Enter: 'hard', ShiftRight: 'hold' },
+      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Space: 'hard', ShiftRight: 'hold' }
     ];
   }
   loadMaps() {
@@ -489,9 +500,11 @@ class Component extends DCLogic {
       const raw = localStorage.getItem('stackDuelKeys');
       if (!raw) return def;
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length === 2 && parsed[0] && parsed[1]
+      if (Array.isArray(parsed) && parsed.length >= 2 && parsed[0] && parsed[1]
         && typeof parsed[0] === 'object' && typeof parsed[1] === 'object') {
-        return [Object.assign({}, parsed[0]), Object.assign({}, parsed[1])];
+        const maps = [Object.assign({}, parsed[0]), Object.assign({}, parsed[1])];
+        maps.push(parsed[2] && typeof parsed[2] === 'object' ? Object.assign({}, parsed[2]) : def[2]);
+        return maps;
       }
     } catch (e) {}
     return def;
@@ -515,8 +528,15 @@ class Component extends DCLogic {
 
   keyFor(i, action) {
     const m = this.netMode ? this.NETMAP : this.maps[i];
+    return this.keyForMap(m, action);
+  }
+  keyForMap(m, action) {
     for (const c in m) if (m[c] === action) return this.keyLabel(c);
     return '—';
+  }
+  mapFor(i) {
+    if (this.netMode) return this.NETMAP;
+    return (this.playerCount === 1 && i === 0) ? this.maps[2] : this.maps[i];
   }
   keyLabel(code) {
     if (!code) return '—';
@@ -540,7 +560,7 @@ class Component extends DCLogic {
     for (const c in m) if (m[c] === action) delete m[c];
     delete m[code];
     m[code] = action;
-    const maps = [this.maps[0], this.maps[1]];
+    const maps = [...this.maps];
     maps[player] = m;
     this.maps = maps;
     this.saveMaps();
@@ -1153,7 +1173,7 @@ class Component extends DCLogic {
     for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue; // net: only local player's keys
       if (this.playerAlive && !this.playerAlive[i]) continue;
-      const act = this.netMode ? this.NETMAP[code] : this.maps[i][code];
+      const act = this.mapFor(i)[code];
       if (!act) continue;
       this.doAction(this.players[i], act);
     }
@@ -1176,7 +1196,7 @@ class Component extends DCLogic {
     for (let i = 0; i < this.players.length; i++) {
       if (this.netMode && i !== this.myIdx) continue;
       if (this.playerAlive && !this.playerAlive[i]) continue;
-      const act = this.netMode ? this.NETMAP[e.code] : this.maps[i][e.code];
+      const act = this.mapFor(i)[e.code];
       if (!act) continue;
       const p = this.players[i];
       if (act === 'left' || act === 'right') {
@@ -1461,7 +1481,8 @@ class Component extends DCLogic {
       };
     });
     const hintStr = (i) => {
-      const k = (a) => this.keyFor(i, a);
+      const m = this.mapFor(i);
+      const k = (a) => this.keyForMap(m, a);
       return k('left') + ' ' + k('right') + ' move · ' + k('rot') + ' rotate · ' + k('soft') + ' soft · ' + k('hard') + ' hard · ' + k('hold') + ' hold';
     };
 
@@ -1479,8 +1500,8 @@ class Component extends DCLogic {
       roundNum: s.round,
       p1Dots: dots(0), p2Dots: dots(1),
       p1Hint: hintStr(0), p2Hint: hintStr(1),
-      p1Keys: keyRows(0), p2Keys: keyRows(1),
-      edit1: editRows(0), edit2: editRows(1),
+      p1Keys: keyRows(0), p2Keys: keyRows(1), soloKeys: keyRows(2),
+      edit1: editRows(0), edit2: editRows(1), editSolo: editRows(2),
       menuButtons,
       overlayVisible: ph !== 'playing',
       showCountdown: ph === 'countdown',
