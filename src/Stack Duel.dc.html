@@ -480,7 +480,8 @@ class Component extends DCLogic {
   defaultMaps() {
     return [
       { KeyA: 'left', KeyD: 'right', KeyS: 'soft', KeyW: 'rot', Space: 'hard', ShiftLeft: 'hold' },
-      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Enter: 'hard', ShiftRight: 'hold' }
+      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Enter: 'hard', ShiftRight: 'hold' },
+      { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'rot', Space: 'hard', ShiftRight: 'hold' }
     ];
   }
   loadMaps() {
@@ -489,9 +490,11 @@ class Component extends DCLogic {
       const raw = localStorage.getItem('stackDuelKeys');
       if (!raw) return def;
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length === 2 && parsed[0] && parsed[1]
+      if (Array.isArray(parsed) && parsed.length >= 2 && parsed[0] && parsed[1]
         && typeof parsed[0] === 'object' && typeof parsed[1] === 'object') {
-        return [Object.assign({}, parsed[0]), Object.assign({}, parsed[1])];
+        const maps = [Object.assign({}, parsed[0]), Object.assign({}, parsed[1])];
+        maps.push(parsed[2] && typeof parsed[2] === 'object' ? Object.assign({}, parsed[2]) : def[2]);
+        return maps;
       }
     } catch (e) {}
     return def;
@@ -540,7 +543,7 @@ class Component extends DCLogic {
     for (const c in m) if (m[c] === action) delete m[c];
     delete m[code];
     m[code] = action;
-    const maps = [this.maps[0], this.maps[1]];
+    const maps = [...this.maps];
     maps[player] = m;
     this.maps = maps;
     this.saveMaps();
