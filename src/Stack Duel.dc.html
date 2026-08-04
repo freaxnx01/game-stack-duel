@@ -518,8 +518,15 @@ class Component extends DCLogic {
 
   keyFor(i, action) {
     const m = this.netMode ? this.NETMAP : this.maps[i];
+    return this.keyForMap(m, action);
+  }
+  keyForMap(m, action) {
     for (const c in m) if (m[c] === action) return this.keyLabel(c);
     return '—';
+  }
+  mapFor(i) {
+    if (this.netMode) return this.NETMAP;
+    return (this.playerCount === 1 && i === 0) ? this.maps[2] : this.maps[i];
   }
   keyLabel(code) {
     if (!code) return '—';
