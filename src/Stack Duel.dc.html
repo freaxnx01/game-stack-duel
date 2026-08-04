@@ -260,6 +260,16 @@ a:hover { color: #38639C; text-decoration: underline; }
                       <div style="display: flex; align-items: center; gap: 12px; width: 200px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><button onClick="{{ d.onClick }}" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: {{ d.bg }}; border: 1px solid {{ d.bd }}; border-radius: 3px; padding: 4px 10px; color: {{ d.fg }}; cursor: pointer; min-width: 78px">{{ d.disp }}</button></div>
                     </sc-for>
                   </div>
+                  <div style="width: 1px; background: #E0E0DA"></div>
+                  <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start">
+                    <div style="display: flex; align-items: center; gap: 7px; margin-bottom: 3px">
+                      <div style="width: 8px; height: 8px; background: #5A9E6F"></div>
+                      <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.14em">SOLO</div>
+                    </div>
+                    <sc-for list="{{ editSolo }}" as="d" hint-placeholder-count="6">
+                      <div style="display: flex; align-items: center; gap: 12px; width: 200px; justify-content: space-between"><span style="font-size: 11px; color: #6E6E68; letter-spacing: 0.08em">{{ d.lab }}</span><button onClick="{{ d.onClick }}" style="font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 11px; background: {{ d.bg }}; border: 1px solid {{ d.bd }}; border-radius: 3px; padding: 4px 10px; color: {{ d.fg }}; cursor: pointer; min-width: 78px">{{ d.disp }}</button></div>
+                    </sc-for>
+                  </div>
                 </div>
                 <div style="display: flex; gap: 12px; margin-top: 6px">
                   <button onClick="{{ resetKeys }}" style="font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; background: #FFFFFF; color: #3A3A36; border: 1px solid #D8D8D1; padding: 11px 20px; cursor: pointer; border-radius: 2px" style-hover="border-color: #B9B9B2">RESET TO DEFAULTS</button>
